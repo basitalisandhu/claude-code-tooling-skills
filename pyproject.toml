@@ -1,0 +1,89 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "claude-code-tooling-skills"
+version = "0.1.0"
+description = "Claude Code skill scripts for keeping a Claude Code setup safe and tidy: an offline inventory of third-party skills and plugins, a SKILL.md front matter linter with quoting fixes, a lexical trigger evaluation of skill descriptions, a context budget audit, a permission rule merger, a hook scaffold for cc-hooks, a skill collision check and a portability check."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Muhammad Basit Ali" }]
+keywords = [
+  "claude-code",
+  "claude-code-plugin",
+  "agent-skills",
+  "skill-supply-chain",
+  "skill-lint",
+  "trigger-evaluation",
+  "context-budget",
+  "permissions",
+  "hooks",
+  "portability",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Security",
+]
+dependencies = []
+
+[project.scripts]
+claude-code-tooling = "claude_code_tooling_skills.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/basitalisandhu/claude-code-tooling-skills"
+Repository = "https://github.com/basitalisandhu/claude-code-tooling-skills"
+Issues = "https://github.com/basitalisandhu/claude-code-tooling-skills/issues"
+Changelog = "https://github.com/basitalisandhu/claude-code-tooling-skills/blob/main/CHANGELOG.md"
+
+# The wheel carries the dispatcher and the skill scripts only: claude_code_tooling_skills/cli.py and
+# claude_code_tooling_skills/skills/<skill>/scripts/*.py. The dispatcher finds the skills next to itself.
+# Adding a skill: add one force-include line for its scripts folder.
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.build.targets.wheel.force-include]
+"scripts/cli.py" = "claude_code_tooling_skills/cli.py"
+"plugins/claude-code-tooling/skills/skill-supply-chain-review/scripts" = "claude_code_tooling_skills/skills/skill-supply-chain-review/scripts"
+"plugins/claude-code-tooling/skills/skill-description-linter/scripts" = "claude_code_tooling_skills/skills/skill-description-linter/scripts"
+"plugins/claude-code-tooling/skills/skill-trigger-eval/scripts" = "claude_code_tooling_skills/skills/skill-trigger-eval/scripts"
+"plugins/claude-code-tooling/skills/context-budget-audit/scripts" = "claude_code_tooling_skills/skills/context-budget-audit/scripts"
+"plugins/claude-code-tooling/skills/permissions-builder/scripts" = "claude_code_tooling_skills/skills/permissions-builder/scripts"
+"plugins/claude-code-tooling/skills/hook-author/scripts" = "claude_code_tooling_skills/skills/hook-author/scripts"
+"plugins/claude-code-tooling/skills/skill-collision-check/scripts" = "claude_code_tooling_skills/skills/skill-collision-check/scripts"
+"plugins/claude-code-tooling/skills/skill-portability-check/scripts" = "claude_code_tooling_skills/skills/skill-portability-check/scripts"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "scripts/cli.py",
+  "plugins/claude-code-tooling/**",
+  "tests/**",
+  "README.md",
+  "LICENSE",
+  "CHANGELOG.md",
+  "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"
+markers = ["posix_only: needs POSIX file modes or symbolic links; skipped on Windows"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

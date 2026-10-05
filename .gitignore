@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Local inputs and outputs (real settings, inventories and saved tools/list results stay out of the repository;
+# tests build their own inputs)
+inventory.json
+inventory.md
+budget.json
+proposed.json
+mcp-rules.json
+scan.json
+lock-scan.json
+*-tools.json
+cc-plugins.lock.json
+.cc-plugin-lock/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/

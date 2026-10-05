@@ -1,0 +1,2 @@
+# Keep LF endings everywhere so shebang lines and SKILL.md front matter read the same on every platform.
+* text=auto eol=lf

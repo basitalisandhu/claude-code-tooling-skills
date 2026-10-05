@@ -1,0 +1,45 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-code-tooling-skills",
+  "description": "Eight Claude Code skills for keeping a Claude Code setup safe and tidy: review third-party skills before install, lint and evaluate your own skill descriptions, audit the context budget, build least-privilege permissions, author and test hooks, and find skill collisions and portability problems.",
+  "owner": {
+    "name": "Muhammad Basit Ali",
+    "url": "https://github.com/basitalisandhu"
+  },
+  "metadata": {
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "claude-code-tooling",
+      "source": "./plugins/claude-code-tooling",
+      "description": "Eight skills, each with a tested standard-library script over local files: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, hook-author, skill-collision-check and skill-portability-check. They drive skill-scan-gate, cc-plugin-lock, claude-perm-sim, claude-mcp-allow and cc-hooks where those are installed. No network.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Muhammad Basit Ali",
+        "url": "https://github.com/basitalisandhu"
+      },
+      "homepage": "https://github.com/basitalisandhu/claude-code-tooling-skills",
+      "repository": "https://github.com/basitalisandhu/claude-code-tooling-skills",
+      "license": "MIT",
+      "keywords": [
+        "claude-code",
+        "skills",
+        "skill-supply-chain",
+        "skill-lint",
+        "trigger-evaluation",
+        "context-budget",
+        "permissions",
+        "hooks",
+        "skill-collisions",
+        "portability"
+      ],
+      "category": "development",
+      "tags": [
+        "security",
+        "developer-tools",
+        "agent-configuration"
+      ]
+    }
+  ]
+}
