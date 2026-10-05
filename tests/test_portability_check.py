@@ -76,7 +76,7 @@ def test_python_command_rule(tmp_path):
         (f["line"], f["rule"])
         for f in rep["findings"]
         if f["rule"] == "python-command"
-    ] == [(7, "python-command")]
+    ] == [(12, "python-command")]
 
 
 def test_python_rules(tmp_path):
