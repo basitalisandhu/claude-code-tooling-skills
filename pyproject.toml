@@ -56,19 +56,19 @@ bypass-selection = true
 
 [tool.hatch.build.targets.wheel.force-include]
 "scripts/cli.py" = "claude_code_tooling_skills/cli.py"
-"plugins/claude-code-tooling/skills/skill-supply-chain-review/scripts" = "claude_code_tooling_skills/skills/skill-supply-chain-review/scripts"
-"plugins/claude-code-tooling/skills/skill-description-linter/scripts" = "claude_code_tooling_skills/skills/skill-description-linter/scripts"
-"plugins/claude-code-tooling/skills/skill-trigger-eval/scripts" = "claude_code_tooling_skills/skills/skill-trigger-eval/scripts"
-"plugins/claude-code-tooling/skills/context-budget-audit/scripts" = "claude_code_tooling_skills/skills/context-budget-audit/scripts"
-"plugins/claude-code-tooling/skills/permissions-builder/scripts" = "claude_code_tooling_skills/skills/permissions-builder/scripts"
-"plugins/claude-code-tooling/skills/hook-author/scripts" = "claude_code_tooling_skills/skills/hook-author/scripts"
-"plugins/claude-code-tooling/skills/skill-collision-check/scripts" = "claude_code_tooling_skills/skills/skill-collision-check/scripts"
-"plugins/claude-code-tooling/skills/skill-portability-check/scripts" = "claude_code_tooling_skills/skills/skill-portability-check/scripts"
+"plugins/cc-setup-tooling/skills/skill-supply-chain-review/scripts" = "claude_code_tooling_skills/skills/skill-supply-chain-review/scripts"
+"plugins/cc-setup-tooling/skills/skill-description-linter/scripts" = "claude_code_tooling_skills/skills/skill-description-linter/scripts"
+"plugins/cc-setup-tooling/skills/skill-trigger-eval/scripts" = "claude_code_tooling_skills/skills/skill-trigger-eval/scripts"
+"plugins/cc-setup-tooling/skills/context-budget-audit/scripts" = "claude_code_tooling_skills/skills/context-budget-audit/scripts"
+"plugins/cc-setup-tooling/skills/permissions-builder/scripts" = "claude_code_tooling_skills/skills/permissions-builder/scripts"
+"plugins/cc-setup-tooling/skills/hook-author/scripts" = "claude_code_tooling_skills/skills/hook-author/scripts"
+"plugins/cc-setup-tooling/skills/skill-collision-check/scripts" = "claude_code_tooling_skills/skills/skill-collision-check/scripts"
+"plugins/cc-setup-tooling/skills/skill-portability-check/scripts" = "claude_code_tooling_skills/skills/skill-portability-check/scripts"
 
 [tool.hatch.build.targets.sdist]
 include = [
   "scripts/cli.py",
-  "plugins/claude-code-tooling/**",
+  "plugins/cc-setup-tooling/**",
   "tests/**",
   "README.md",
   "LICENSE",

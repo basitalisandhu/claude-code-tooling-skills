@@ -28,8 +28,8 @@ jobs:
         run: python3 scripts/validate_plugin.py
       - name: The plugin passes its own description linter and portability check
         run: |
-          python3 scripts/cli.py desc-lint plugins/claude-code-tooling
-          python3 scripts/cli.py portability plugins/claude-code-tooling
+          python3 scripts/cli.py desc-lint plugins/cc-setup-tooling
+          python3 scripts/cli.py portability plugins/cc-setup-tooling
       - name: Every subcommand answers --help through the dispatcher
         run: |
           for s in $(python3 -c "import importlib.util as u; s=u.spec_from_file_location('c','scripts/cli.py'); m=u.module_from_spec(s); s.loader.exec_module(m); print(*m.COMMANDS)"); do
@@ -95,4 +95,4 @@ jobs:
       - name: Validate the marketplace and the plugin
         run: |
           claude plugin validate --strict .
-          claude plugin validate --strict plugins/claude-code-tooling
+          claude plugin validate --strict plugins/cc-setup-tooling

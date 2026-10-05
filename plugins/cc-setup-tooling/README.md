@@ -1,6 +1,6 @@
-# claude-code-tooling
+# cc-setup-tooling
 
-Skills that keep a Claude Code setup safe and tidy, each with a tested standard-library Python script. Install with `/plugin marketplace add basitalisandhu/claude-code-tooling-skills` and then `/plugin install claude-code-tooling@claude-code-tooling-skills`. Skills appear as `/claude-code-tooling:<skill>`, and Claude also invokes them on its own when a request matches a skill's description.
+Skills that keep a Claude Code setup safe and tidy, each with a tested standard-library Python script. Install with `/plugin marketplace add basitalisandhu/claude-code-tooling-skills` and then `/plugin install cc-setup-tooling@claude-code-tooling-skills`. Skills appear as `/cc-setup-tooling:<skill>`, and Claude also invokes them on its own when a request matches a skill's description.
 
 | Skill | Script | Use it to |
 |---|---|---|

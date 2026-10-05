@@ -5,7 +5,7 @@
     claude-code-tooling <subcommand> --help       that script's own help
     claude-code-tooling --help                    list the subcommands
 
-Each subcommand runs plugins/claude-code-tooling/skills/<skill>/scripts/<script>.py unchanged, in a child process
+Each subcommand runs plugins/cc-setup-tooling/skills/<skill>/scripts/<script>.py unchanged, in a child process
 with the same Python, stdin, stdout, stderr and exit code. Standard library only. This is the entrypoint of the
 container image ghcr.io/basitalisandhu/claude-code-tooling-skills and of the claude-code-tooling-skills Python
 package. To add a skill, add one entry to COMMANDS.
@@ -21,11 +21,11 @@ __version__ = "0.1.0"
 
 PROG = "claude-code-tooling"
 HERE = Path(__file__).resolve().parent
-# In a checkout or the container image the skills sit at <root>/plugins/claude-code-tooling/skills; in the installed
+# In a checkout or the container image the skills sit at <root>/plugins/cc-setup-tooling/skills; in the installed
 # Python package they sit next to this file, at claude_code_tooling_skills/skills.
 SKILLS = next(
-    (p for p in (HERE.parent / "plugins" / "claude-code-tooling" / "skills", HERE / "skills") if p.is_dir()),
-    HERE.parent / "plugins" / "claude-code-tooling" / "skills",
+    (p for p in (HERE.parent / "plugins" / "cc-setup-tooling" / "skills", HERE / "skills") if p.is_dir()),
+    HERE.parent / "plugins" / "cc-setup-tooling" / "skills",
 )
 
 # subcommand: (skill directory, script, one-line summary)

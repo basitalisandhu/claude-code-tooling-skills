@@ -62,9 +62,9 @@ jobs:
       - name: Version (plugin.json, pyproject, cli.py and marketplace must agree, and match the tag)
         id: meta
         run: |
-          VERSION=$(python -c "import json; print(json.load(open('plugins/claude-code-tooling/.claude-plugin/plugin.json'))['version'])")
+          VERSION=$(python -c "import json; print(json.load(open('plugins/cc-setup-tooling/.claude-plugin/plugin.json'))['version'])")
           if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$VERSION" != "${GITHUB_REF_NAME#v}" ]; then
-            echo "::error file=plugins/claude-code-tooling/.claude-plugin/plugin.json::version $VERSION does not match tag $GITHUB_REF_NAME"; exit 1
+            echo "::error file=plugins/cc-setup-tooling/.claude-plugin/plugin.json::version $VERSION does not match tag $GITHUB_REF_NAME"; exit 1
           fi
           python - "$VERSION" <<'PY'
           import json, sys

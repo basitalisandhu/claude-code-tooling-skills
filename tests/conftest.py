@@ -1,6 +1,6 @@
 """Shared helpers for the script tests.
 
-Every skill script lives at plugins/claude-code-tooling/skills/<skill>/scripts/<name>.py and is a standalone program,
+Every skill script lives at plugins/cc-setup-tooling/skills/<skill>/scripts/<name>.py and is a standalone program,
 not a package. Tests load one by path with load_script() and call its main(argv), capturing stdout and stderr.
 There are no fixture files on disk: each test builds its synthetic input in pytest's tmp_path with write_files(),
 using made-up names and example values only. Nothing here touches the network.
@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILLS = ROOT / "plugins" / "claude-code-tooling" / "skills"
+SKILLS = ROOT / "plugins" / "cc-setup-tooling" / "skills"
 
 
 def pytest_collection_modifyitems(config, items):

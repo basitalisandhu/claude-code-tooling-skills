@@ -52,7 +52,7 @@ REQUIRED = (
 )
 INSTALL = (
     f"/plugin marketplace add basitalisandhu/{MARKETPLACE}",
-    f"/plugin install claude-code-tooling@{MARKETPLACE}",
+    f"/plugin install cc-setup-tooling@{MARKETPLACE}",
 )
 FORBIDDEN_IMPORT_RE = re.compile(
     r"^\s*(?:import|from)\s+(?:socket|urllib|http\.client|requests|ssl|ftplib|smtplib|subprocess)\b", re.MULTILINE

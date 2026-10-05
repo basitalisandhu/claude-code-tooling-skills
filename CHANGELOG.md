@@ -8,7 +8,7 @@ All notable changes to this project are documented here. The format follows Keep
 
 ### Added
 
-- Plugin marketplace `claude-code-tooling-skills` with one plugin, `claude-code-tooling`, whose skills each have a tested standard-library script that reads local files and never calls the network.
+- Plugin marketplace `claude-code-tooling-skills` with one plugin, `cc-setup-tooling`, whose skills each have a tested standard-library script that reads local files and never calls the network.
 - `skill-supply-chain-review`: a review procedure that runs skill-scan-gate and cc-plugin-lock on a third-party skill or plugin, and `skill_inventory.py`, an offline inventory of files with hashes, script imports and network, process, dynamic-code and environment use, URLs and domains, shell patterns, credential-store paths, hidden Unicode, hooks, MCP servers, permission rules, symlinks and binaries.
 - `skill-description-linter`: `description_lint.py` checks double quoting, length, verb start, a quoted trigger phrase, Use when, Not for, name against folder, strict-YAML safety and a Limits section, reports listing cost, and rewrites quoting with `--fix` (preview with `--diff`).
 - `skill-trigger-eval`: `trigger_eval.py` scores descriptions against a labelled YAML or JSON prompt set with documented coverage, bigram, phrase and Not-for components, reports precision and recall, compares two versions, and counts sibling prompts as negatives with `--cross`.

@@ -11,8 +11,8 @@
   },
   "plugins": [
     {
-      "name": "claude-code-tooling",
-      "source": "./plugins/claude-code-tooling",
+      "name": "cc-setup-tooling",
+      "source": "./plugins/cc-setup-tooling",
       "description": "Eight skills, each with a tested standard-library script over local files: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, hook-author, skill-collision-check and skill-portability-check. They drive skill-scan-gate, cc-plugin-lock, claude-perm-sim, claude-mcp-allow and cc-hooks where those are installed. No network.",
       "version": "0.1.0",
       "author": {

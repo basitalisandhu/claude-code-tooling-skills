@@ -13,13 +13,13 @@ FROM ${PYTHON_IMAGE} AS build
 WORKDIR /app
 COPY LICENSE README.md pyproject.toml ./
 COPY scripts/cli.py scripts/cli.py
-COPY plugins/claude-code-tooling/skills/ /tmp/skills/
+COPY plugins/cc-setup-tooling/skills/ /tmp/skills/
 RUN set -e; for d in /tmp/skills/*/scripts; do \
       skill=$(basename "$(dirname "$d")"); \
-      mkdir -p "plugins/claude-code-tooling/skills/$skill/scripts"; \
-      cp "$d"/*.py "plugins/claude-code-tooling/skills/$skill/scripts/"; \
+      mkdir -p "plugins/cc-setup-tooling/skills/$skill/scripts"; \
+      cp "$d"/*.py "plugins/cc-setup-tooling/skills/$skill/scripts/"; \
     done \
- && chmod 0755 scripts/cli.py plugins/claude-code-tooling/skills/*/scripts/[a-z]*.py \
+ && chmod 0755 scripts/cli.py plugins/cc-setup-tooling/skills/*/scripts/[a-z]*.py \
  && python -m compileall -q scripts plugins \
  && python scripts/cli.py --help > /dev/null
 

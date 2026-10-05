@@ -132,5 +132,5 @@ def test_skip_rule_and_golden_markdown(tmp_path):
 def test_this_plugin_passes_its_own_check():
     from conftest import ROOT
 
-    rc, rep = run_json(mod, [str(ROOT / "plugins" / "claude-code-tooling")])
+    rc, rep = run_json(mod, [str(ROOT / "plugins" / "cc-setup-tooling")])
     assert rc == 0, rep["findings"]

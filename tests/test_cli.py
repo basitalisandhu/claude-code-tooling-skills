@@ -72,7 +72,7 @@ def test_exit_code_and_arguments_pass_through(tmp_path):
     assert "usage: " in result.stderr
     skill = tmp_path / "demo"
     (skill / "scripts").mkdir(parents=True)
-    (skill / "scripts" / "show.py").write_text('print(open("notes.txt").read())\n', encoding="utf-8")
+    (skill / "scripts" / "show.py").write_text('print(open("notes.txt").read())\n', encoding="utf-8", newline="\n")
     result = run("portability", str(skill), "--json")
     assert result.returncode == 1
     assert json.loads(result.stdout)["findings"][0]["rule"] == "open-no-encoding"
@@ -82,7 +82,7 @@ def test_version_matches_every_version_field():
     text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     expected = re.search(r'^version = "([^"]+)"', text, re.MULTILINE).group(1)
     plugin = json.loads(
-        (ROOT / "plugins" / "claude-code-tooling" / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
+        (ROOT / "plugins" / "cc-setup-tooling" / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
     )
     market = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8"))
     assert plugin["version"] == expected
@@ -101,8 +101,8 @@ def test_cli_is_executable_with_a_shebang():
 
 def test_pyproject_packages_every_skill_scripts_folder():
     text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    for skill in sorted(p.name for p in (ROOT / "plugins" / "claude-code-tooling" / "skills").iterdir() if p.is_dir()):
-        assert f'"plugins/claude-code-tooling/skills/{skill}/scripts" = ' in text, skill
+    for skill in sorted(p.name for p in (ROOT / "plugins" / "cc-setup-tooling" / "skills").iterdir() if p.is_dir()):
+        assert f'"plugins/cc-setup-tooling/skills/{skill}/scripts" = ' in text, skill
 
 
 def test_package_layout_finds_skills_next_to_the_module(tmp_path):
@@ -110,7 +110,7 @@ def test_package_layout_finds_skills_next_to_the_module(tmp_path):
     pkg = tmp_path / "claude_code_tooling_skills"
     pkg.mkdir()
     shutil.copy(CLI, pkg / "cli.py")
-    shutil.copytree(ROOT / "plugins" / "claude-code-tooling" / "skills", pkg / "skills")
+    shutil.copytree(ROOT / "plugins" / "cc-setup-tooling" / "skills", pkg / "skills")
     result = subprocess.run(
         [sys.executable, str(pkg / "cli.py"), "portability", "--help"],
         capture_output=True,

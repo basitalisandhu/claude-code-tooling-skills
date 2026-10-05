@@ -15,7 +15,7 @@ Thank you for helping. This repository values computed, cited output over volume
 
 ## Adding or changing a skill
 
-1. Skills live in `plugins/claude-code-tooling/skills/<name>/SKILL.md`. The front matter needs `name` (equal to the directory name), a `description` in double quotes of at most 600 characters that starts with a verb, puts the user's goal before the mechanism, holds one quoted phrase a user would type, and says "Use when ..." and "Not for ...", plus `license: MIT`, `compatibility` and `metadata`.
+1. Skills live in `plugins/cc-setup-tooling/skills/<name>/SKILL.md`. The front matter needs `name` (equal to the directory name), a `description` in double quotes of at most 600 characters that starts with a verb, puts the user's goal before the mechanism, holds one quoted phrase a user would type, and says "Use when ..." and "Not for ...", plus `license: MIT`, `compatibility` and `metadata`.
 2. Keep the body order: intro, the untrusted-data line, "When to use it", "Inputs", "Steps", "Script" (usage with real flags, a copy-install path and exit codes), "Output", "Limits", "Related skills".
 3. Put the script in the skill's own `scripts/` folder, reference it as `python3 "${CLAUDE_PLUGIN_ROOT}/skills/<name>/scripts/<file>.py"`, make it executable, add a subcommand to `COMMANDS` in `scripts/cli.py` and a `force-include` line in `pyproject.toml`.
 4. Add the tests, a row in both READMEs and in the root README's subcommand table, and a line under `Unreleased` in `CHANGELOG.md`. The validator discovers new skills by itself.
@@ -26,8 +26,8 @@ Thank you for helping. This repository values computed, cited output over volume
 python3 -m pytest -q
 ruff format --check . && ruff check .
 python3 scripts/validate_plugin.py
-python3 scripts/cli.py desc-lint plugins/claude-code-tooling && python3 scripts/cli.py portability plugins/claude-code-tooling
-claude plugin validate --strict . && claude plugin validate --strict plugins/claude-code-tooling
+python3 scripts/cli.py desc-lint plugins/cc-setup-tooling && python3 scripts/cli.py portability plugins/cc-setup-tooling
+claude plugin validate --strict . && claude plugin validate --strict plugins/cc-setup-tooling
 ```
 
 ## Pull requests

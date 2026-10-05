@@ -10,7 +10,7 @@ claude-code-tooling-skills is a Claude Code plugin for the upkeep of Claude Code
 
 ```text
 /plugin marketplace add basitalisandhu/claude-code-tooling-skills
-/plugin install claude-code-tooling@claude-code-tooling-skills
+/plugin install cc-setup-tooling@claude-code-tooling-skills
 ```
 
 Quickstart: open Claude Code in a folder of skills and ask "will this skill work on Windows?" or "why is my context so full?". Or run a script directly from a clone of this repository:
@@ -25,8 +25,8 @@ Questions, bugs and ideas: open an issue on this repository. Security reports: s
 
 ## Install
 
-1. **This marketplace** (above): adds the plugin with its skills and keeps the `${CLAUDE_PLUGIN_ROOT}` script paths working.
-2. **Through the claude-skills aggregator**, which collects every pack the author maintains in one marketplace: `/plugin marketplace add basitalisandhu/claude-skills`, then `/plugin install claude-code-tooling@claude-skills`. The aggregator copies packs on its own sync schedule, so check its catalog for this plugin before relying on that route; its `install.py` can also copy skills into `~/.claude/skills` without the plugin system.
+1. **This marketplace** (above): adds the plugin, named `cc-setup-tooling` because Claude Code reserves plugin names that start with `claude-`, with its skills and keeps the `${CLAUDE_PLUGIN_ROOT}` script paths working.
+2. **Through the claude-skills aggregator**, which collects every pack the author maintains in one marketplace: `/plugin marketplace add basitalisandhu/claude-skills`, then `/plugin install cc-setup-tooling@claude-skills`. The aggregator copies packs on its own sync schedule, so check its catalog for this plugin before relying on that route; its `install.py` can also copy skills into `~/.claude/skills` without the plugin system.
 3. **Without Claude Code**: run the scripts from a clone (`python3 scripts/cli.py <subcommand>`), build the Python package with `pip install .` (it installs the `claude-code-tooling` command; it is not on PyPI), or use the container image `ghcr.io/basitalisandhu/claude-code-tooling-skills`, which `publish-github-packages.yml` builds for linux/amd64 and linux/arm64 when a version tag is pushed, signed with cosign (keyless), with a build provenance attestation and an SPDX SBOM on the GitHub Release:
 
    ```bash
@@ -147,7 +147,7 @@ This repository's own plugin passes its description linter and portability check
 
 ```text
 .claude-plugin/marketplace.json                       marketplace manifest
-plugins/claude-code-tooling/
+plugins/cc-setup-tooling/
 ├── .claude-plugin/plugin.json                        plugin manifest
 ├── README.md                                         the plugin's skill table
 └── skills/<name>/
@@ -165,7 +165,7 @@ tests/                                                pytest suite, offline; inp
 python3 -m pytest -q
 ruff format --check . && ruff check .
 python3 scripts/validate_plugin.py
-claude plugin validate --strict . && claude plugin validate --strict plugins/claude-code-tooling
+claude plugin validate --strict . && claude plugin validate --strict plugins/cc-setup-tooling
 ```
 
 CI runs the tests on Linux, macOS and Windows with Python 3.10 to 3.13, builds the container image, and runs `claude plugin validate --strict`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the ground rules and [docs/good-first-issues.md](docs/good-first-issues.md) for a place to start.
