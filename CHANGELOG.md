@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows Keep
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-05
+
+### Fixed
+
+- `skill-description-linter`: `description-verb-start` no longer fires on descriptions whose first word is hyphenated (`Stress-test`, `Re-run`) or followed by punctuation (`Build,`, `Review:`) (#7).
+
 ## [0.1.0] - 2026-10-05
 
 ### Added
@@ -22,5 +28,6 @@ All notable changes to this project are documented here. The format follows Keep
 - `Dockerfile` and `publish-github-packages.yml`: on a `v*` tag, the image `ghcr.io/basitalisandhu/claude-code-tooling-skills` for linux/amd64 and linux/arm64 with an SPDX SBOM, a build provenance attestation and a keyless cosign signature.
 - Tasks for new contributors in `docs/good-first-issues.md`.
 
-[Unreleased]: https://github.com/basitalisandhu/claude-code-tooling-skills/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/basitalisandhu/claude-code-tooling-skills/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/basitalisandhu/claude-code-tooling-skills/releases/tag/v0.1.1
 [0.1.0]: https://github.com/basitalisandhu/claude-code-tooling-skills/releases/tag/v0.1.0
