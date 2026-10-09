@@ -9,6 +9,7 @@ All notable changes to this project are documented here. The format follows Keep
 - `python-command` portability rule flags bare `python` commands in shell code blocks and recommends `python3` with the interpreter stated in compatibility notes.
 
 ## [0.1.1] - 2026-10-05
+## [0.1.1] - 2026-10-05
 
 ### Fixed
 

@@ -56,7 +56,7 @@ def test_each_description_rule(tmp_path):
         {
             "too-long/SKILL.md": skill_md("too-long", long_desc),
             "verb/SKILL.md": skill_md("verb", 'This skill reviews. Use when "a b". Not for c.'),
-            "hyphen/SKILL.md": skill_md("hyphen", 'Checklist-driven review. Use when "a b". Not for c.'),
+            "hyphen/SKILL.md": skill_md("hyphen", 'Checklist- review. Use when "a b". Not for c.'),
             "phrase/SKILL.md": skill_md("phrase", "Review plans. Use when asked. Not for code."),
             "usewhen/SKILL.md": skill_md("usewhen", 'Review plans "a b". Not for code.'),
             "notfor/SKILL.md": skill_md("notfor", 'Review plans. Use when "a b".'),
@@ -75,6 +75,19 @@ def test_each_description_rule(tmp_path):
     assert by["notfor"] == {"description-no-not-for"}
     assert by["limits"] == {"limits-missing"}
     assert by["folder"] == {"name-mismatch", "name-format"}
+
+
+def test_first_word_accepts_punctuation_and_hyphenated_verbs(tmp_path):
+    starts = {
+        "comma": "Build, explain and test a plan.",
+        "hyph": "Stress-test a plan against hidden assumptions.",
+        "rerun": "Re-run a failed check.",
+        "colon": "Review: a plan before it ships.",
+    }
+    files = {f"{k}/SKILL.md": skill_md(k, f'{v} Use when asked "a b". Not for c.') for k, v in starts.items()}
+    write_files(tmp_path, files)
+    rc, rep = run_json(mod, [str(tmp_path)])
+    assert rc == 0 and rules(rep) == set()
 
 
 def test_max_chars_option(tmp_path):

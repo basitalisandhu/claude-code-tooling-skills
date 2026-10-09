@@ -30,7 +30,7 @@ Questions, bugs and ideas: open an issue on this repository. Security reports: s
 3. **Without Claude Code**: run the scripts from a clone (`python3 scripts/cli.py <subcommand>`), build the Python package with `pip install .` (it installs the `claude-code-tooling` command; it is not on PyPI), or use the container image `ghcr.io/basitalisandhu/claude-code-tooling-skills`, which `publish-github-packages.yml` builds for linux/amd64 and linux/arm64 when a version tag is pushed, signed with cosign (keyless), with a build provenance attestation and an SPDX SBOM on the GitHub Release:
 
    ```bash
-   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.1.0 portability /work/skills
+   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.1.1 portability /work/skills
    ```
 
 After a copy install, each SKILL.md says where its script is relative to the skill folder.
