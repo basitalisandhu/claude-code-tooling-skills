@@ -60,14 +60,7 @@ def test_python_command_rule(tmp_path):
     skill = skill_md(
         "tool",
         "Do a thing. Use when x. Not for y.",
-        body=(
-            "## Commands\n\n"
-            "```bash\n"
-            "python x.py\n"
-            "python3 x.py\n"
-            "python3.12 -m venv .venv\n"
-            "```\n"
-        ),
+        body=("## Commands\n\n```bash\npython x.py\npython3 x.py\npython3.12 -m venv .venv\n```\n"),
     )
     write_files(tmp_path / "tool", {"SKILL.md": skill})
     rc, rep = run_json(mod, [str(tmp_path / "tool")])
