@@ -15,7 +15,8 @@ Rules (each finding cites the file and line):
   * env-no-default: Python indexing os.environ with a CLAUDE_ variable name (such as the plugin root) and no default;
   * non-portable-shell: GNU-only or BSD-only command options in .sh files and in bash or sh code blocks of Markdown
     (sed -i, readlink -f, date -d, stat -c, stat -f, grep -P, xargs -r, echo -e, base64 -w, find -printf);
-  * python-command: a bare python command at the start of a command in a bash code block; use python3 and state the interpreter in compatibility;
+  * python-command: a bare python command at the start of a command in a bash code block; use python3 and
+    state the interpreter in compatibility;
   * bashism-in-sh: a #!/bin/sh script using [[, function, source, == or arrays;
   * shebang-hardcoded: #!/bin/bash or #!/usr/bin/python3 instead of #!/usr/bin/env ...;
   * open-no-encoding: Python open(), Path.open(), read_text() or write_text() in text mode without encoding=;
