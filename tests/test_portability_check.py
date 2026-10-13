@@ -65,11 +65,9 @@ def test_python_command_rule(tmp_path):
     write_files(tmp_path / "tool", {"SKILL.md": skill})
     rc, rep = run_json(mod, [str(tmp_path / "tool")])
     assert rc == 1
-    assert [
-        (f["line"], f["rule"])
-        for f in rep["findings"]
-        if f["rule"] == "python-command"
-    ] == [(12, "python-command")]
+    assert [(f["line"], f["rule"]) for f in rep["findings"] if f["rule"] == "python-command"] == [
+        (12, "python-command")
+    ]
 
 
 def test_python_rules(tmp_path):
