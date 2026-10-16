@@ -4,8 +4,11 @@ All notable changes to this project are documented here. The format follows Keep
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-16
+
 ### Added
 
+- `sandbox-config-review`: `sandbox_review.py` reads a project's `.claude/settings.json` and `.claude/settings.local.json` and the user and managed settings files you name, merges the `sandbox` keys and the related permission rules the way the official sandboxing page states (managed Boolean keys win, arrays merge, keys a repository cannot set, admin-required and strict-allowlist locks), and reports each effective value with its source scope, the allowed and denied domains with `WebFetch(domain:...)` rules marked, and findings: `sandbox-off`, `windows-native-unsandboxed`, `fail-open`, `escape-hatch-open`, `excluded-command-broad`, `domain-wildcard-broad` (with a documented default list of publishable-host suffixes), `allow-deny-conflict`, `credentials-readable`, `filesystem-disabled`, `unix-sockets-all`, `weaker-isolation`, `proxy-port-set`, `repo-loosens` and `strict-allowlist-ignored-scope`. It prints, never runs, curl checks to confirm enforcement in a session. Markdown or JSON, `--fail-on high|medium|low`; exit 0, 1 findings, 2 bad input. 20 tests with golden outputs for four synthetic projects; `claude-code-tooling sandbox-review` subcommand and a container CI sample.
 - `python-command` portability rule flags bare `python` commands in shell code blocks and recommends `python3` with the interpreter stated in compatibility notes.
 
 ## [0.1.1] - 2026-10-05
@@ -32,6 +35,7 @@ All notable changes to this project are documented here. The format follows Keep
 - `Dockerfile` and `publish-github-packages.yml`: on a `v*` tag, the image `ghcr.io/basitalisandhu/claude-code-tooling-skills` for linux/amd64 and linux/arm64 with an SPDX SBOM, a build provenance attestation and a keyless cosign signature.
 - Tasks for new contributors in `docs/good-first-issues.md`.
 
-[Unreleased]: https://github.com/basitalisandhu/claude-code-tooling-skills/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/basitalisandhu/claude-code-tooling-skills/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/basitalisandhu/claude-code-tooling-skills/releases/tag/v0.2.0
 [0.1.1]: https://github.com/basitalisandhu/claude-code-tooling-skills/releases/tag/v0.1.1
 [0.1.0]: https://github.com/basitalisandhu/claude-code-tooling-skills/releases/tag/v0.1.0

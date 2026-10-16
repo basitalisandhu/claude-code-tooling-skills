@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "claude-code-tooling-skills"
-version = "0.1.1"
-description = "Claude Code skill scripts for keeping a Claude Code setup safe and tidy: an offline inventory of third-party skills and plugins, a SKILL.md front matter linter with quoting fixes, a lexical trigger evaluation of skill descriptions, a context budget audit, a permission rule merger, a hook scaffold for cc-hooks, a skill collision check and a portability check."
+version = "0.2.0"
+description = "Claude Code skill scripts for keeping a Claude Code setup safe and tidy: an offline inventory of third-party skills and plugins, a SKILL.md front matter linter with quoting fixes, a lexical trigger evaluation of skill descriptions, a context budget audit, a permission rule merger, a hook scaffold for cc-hooks, a skill collision check, a portability check and a sandbox settings review."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -22,6 +22,7 @@ keywords = [
   "permissions",
   "hooks",
   "portability",
+  "sandbox",
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -64,6 +65,7 @@ bypass-selection = true
 "plugins/cc-setup-tooling/skills/hook-author/scripts" = "claude_code_tooling_skills/skills/hook-author/scripts"
 "plugins/cc-setup-tooling/skills/skill-collision-check/scripts" = "claude_code_tooling_skills/skills/skill-collision-check/scripts"
 "plugins/cc-setup-tooling/skills/skill-portability-check/scripts" = "claude_code_tooling_skills/skills/skill-portability-check/scripts"
+"plugins/cc-setup-tooling/skills/sandbox-config-review/scripts" = "claude_code_tooling_skills/skills/sandbox-config-review/scripts"
 
 [tool.hatch.build.targets.sdist]
 include = [

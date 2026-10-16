@@ -1,0 +1,400 @@
+{
+  "doc": "https://code.claude.com/docs/en/sandboxing",
+  "platform": "linux",
+  "scopes": [
+    {
+      "scope": "user",
+      "file": "user.json",
+      "present": true
+    },
+    {
+      "scope": "project",
+      "file": ".claude/settings.json",
+      "present": true
+    },
+    {
+      "scope": "local",
+      "file": ".claude/settings.local.json",
+      "present": true
+    },
+    {
+      "scope": "managed",
+      "file": null,
+      "present": false
+    }
+  ],
+  "admin_required": false,
+  "admin_required_because": [],
+  "active_checks": true,
+  "effective": {
+    "enabled": {
+      "value": true,
+      "source": "project",
+      "ignored": []
+    },
+    "failIfUnavailable": {
+      "value": false,
+      "source": "default",
+      "ignored": []
+    },
+    "allowUnsandboxedCommands": {
+      "value": true,
+      "source": "default",
+      "ignored": []
+    },
+    "autoAllowBashIfSandboxed": {
+      "value": true,
+      "source": "default",
+      "ignored": []
+    },
+    "filesystem.disabled": {
+      "value": true,
+      "source": "user",
+      "ignored": []
+    },
+    "network.strictAllowlist": {
+      "value": null,
+      "source": null,
+      "ignored": [
+        {
+          "scope": "local",
+          "value": true,
+          "reason": "not honoured from project or local settings"
+        }
+      ]
+    },
+    "network.allowManagedDomainsOnly": {
+      "value": null,
+      "source": null,
+      "ignored": []
+    },
+    "network.allowAllUnixSockets": {
+      "value": true,
+      "source": "user",
+      "ignored": []
+    },
+    "network.allowLocalBinding": {
+      "value": null,
+      "source": null,
+      "ignored": []
+    },
+    "enableWeakerNestedSandbox": {
+      "value": null,
+      "source": null,
+      "ignored": []
+    },
+    "enableWeakerNetworkIsolation": {
+      "value": null,
+      "source": null,
+      "ignored": []
+    },
+    "allowAppleEvents": {
+      "value": null,
+      "source": null,
+      "ignored": []
+    }
+  },
+  "lists": {
+    "excludedCommands": [
+      {
+        "value": "bash *",
+        "scope": "project",
+        "honoured": true,
+        "reason": ""
+      },
+      {
+        "value": "curl *",
+        "scope": "project",
+        "honoured": true,
+        "reason": ""
+      },
+      {
+        "value": "python scripts/load_data.py *",
+        "scope": "project",
+        "honoured": true,
+        "reason": ""
+      }
+    ],
+    "filesystem.allowWrite": [],
+    "filesystem.denyWrite": [],
+    "filesystem.denyRead": [],
+    "filesystem.allowRead": [],
+    "network.allowedDomains": [
+      {
+        "value": "*",
+        "scope": "project",
+        "honoured": true,
+        "reason": ""
+      },
+      {
+        "value": "*.com",
+        "scope": "project",
+        "honoured": true,
+        "reason": ""
+      },
+      {
+        "value": "*.blob.core.windows.net",
+        "scope": "project",
+        "honoured": true,
+        "reason": ""
+      },
+      {
+        "value": "registry.npmjs.org",
+        "scope": "project",
+        "honoured": true,
+        "reason": ""
+      }
+    ],
+    "network.deniedDomains": [],
+    "network.allowUnixSockets": [],
+    "network.httpProxyPort": [],
+    "network.socksProxyPort": []
+  },
+  "domains": {
+    "allowed": [
+      {
+        "host": "*",
+        "scope": "project",
+        "via": "allowedDomains",
+        "honoured": true,
+        "reason": "",
+        "denied_by": null
+      },
+      {
+        "host": "*.com",
+        "scope": "project",
+        "via": "allowedDomains",
+        "honoured": true,
+        "reason": "",
+        "denied_by": null
+      },
+      {
+        "host": "*.blob.core.windows.net",
+        "scope": "project",
+        "via": "allowedDomains",
+        "honoured": true,
+        "reason": "",
+        "denied_by": null
+      },
+      {
+        "host": "registry.npmjs.org",
+        "scope": "project",
+        "via": "allowedDomains",
+        "honoured": true,
+        "reason": "",
+        "denied_by": null
+      },
+      {
+        "host": "*.ngrok.io",
+        "scope": "local",
+        "via": "WebFetch(domain:) allow rule",
+        "honoured": true,
+        "reason": "",
+        "denied_by": null
+      },
+      {
+        "host": "docs.example.*",
+        "scope": "local",
+        "via": "WebFetch(domain:) allow rule",
+        "honoured": false,
+        "reason": "this wildcard form matches fetches but has no effect on sandboxed commands",
+        "denied_by": null
+      }
+    ],
+    "denied": []
+  },
+  "findings": [
+    {
+      "rule": "domain-wildcard-broad",
+      "severity": "high",
+      "scope": "project",
+      "item": "* (allowedDomains)",
+      "detail": "allows every host"
+    },
+    {
+      "rule": "domain-wildcard-broad",
+      "severity": "high",
+      "scope": "project",
+      "item": "*.com (allowedDomains)",
+      "detail": "allows every host under the top-level domain .com"
+    },
+    {
+      "rule": "excluded-command-broad",
+      "severity": "high",
+      "scope": "project",
+      "item": "bash *",
+      "detail": "runs a shell (bash) outside the sandbox with your full access"
+    },
+    {
+      "rule": "excluded-command-broad",
+      "severity": "high",
+      "scope": "project",
+      "item": "curl *",
+      "detail": "runs a network tool (curl) outside the sandbox with your full access"
+    },
+    {
+      "rule": "filesystem-disabled",
+      "severity": "high",
+      "scope": "user",
+      "item": "sandbox.filesystem.disabled",
+      "detail": "sandboxed commands can read and write the whole filesystem; denyRead and credentials file deny entries are not enforced, and with autoAllowBashIfSandboxed they run without prompts and can write files that widen their own access (shell startup files, $PATH executables, ~/.claude/settings.json)"
+    },
+    {
+      "rule": "repo-loosens",
+      "severity": "high",
+      "scope": "project",
+      "item": "allowedDomains: *",
+      "detail": "set in the committed .claude/settings.json, so anyone who clones the repository gets it"
+    },
+    {
+      "rule": "repo-loosens",
+      "severity": "high",
+      "scope": "project",
+      "item": "allowedDomains: *.blob.core.windows.net",
+      "detail": "set in the committed .claude/settings.json, so anyone who clones the repository gets it"
+    },
+    {
+      "rule": "repo-loosens",
+      "severity": "high",
+      "scope": "project",
+      "item": "allowedDomains: *.com",
+      "detail": "set in the committed .claude/settings.json, so anyone who clones the repository gets it"
+    },
+    {
+      "rule": "repo-loosens",
+      "severity": "high",
+      "scope": "project",
+      "item": "excludedCommands: bash *",
+      "detail": "set in the committed .claude/settings.json, so anyone who clones the repository gets it"
+    },
+    {
+      "rule": "repo-loosens",
+      "severity": "high",
+      "scope": "project",
+      "item": "excludedCommands: curl *",
+      "detail": "set in the committed .claude/settings.json, so anyone who clones the repository gets it"
+    },
+    {
+      "rule": "repo-loosens",
+      "severity": "high",
+      "scope": "project",
+      "item": "excludedCommands: python scripts/load_data.py *",
+      "detail": "set in the committed .claude/settings.json, so anyone who clones the repository gets it"
+    },
+    {
+      "rule": "unix-sockets-all",
+      "severity": "high",
+      "scope": "user",
+      "item": "sandbox.network.allowAllUnixSockets",
+      "detail": "every Unix socket is open to sandboxed commands; a socket such as /var/run/docker.sock gives access to the host"
+    },
+    {
+      "rule": "credentials-readable",
+      "severity": "medium",
+      "scope": "default",
+      "item": ".env",
+      "detail": ".env files in the project: filesystem isolation is off, so read blocks are not enforced"
+    },
+    {
+      "rule": "credentials-readable",
+      "severity": "medium",
+      "scope": "default",
+      "item": "~/.aws",
+      "detail": "AWS credentials: filesystem isolation is off, so read blocks are not enforced"
+    },
+    {
+      "rule": "credentials-readable",
+      "severity": "medium",
+      "scope": "default",
+      "item": "~/.config/gh",
+      "detail": "GitHub CLI token: filesystem isolation is off, so read blocks are not enforced"
+    },
+    {
+      "rule": "credentials-readable",
+      "severity": "medium",
+      "scope": "default",
+      "item": "~/.netrc",
+      "detail": "netrc passwords: filesystem isolation is off, so read blocks are not enforced"
+    },
+    {
+      "rule": "credentials-readable",
+      "severity": "medium",
+      "scope": "default",
+      "item": "~/.ssh",
+      "detail": "SSH keys: filesystem isolation is off, so read blocks are not enforced"
+    },
+    {
+      "rule": "domain-wildcard-broad",
+      "severity": "medium",
+      "scope": "project",
+      "item": "*.blob.core.windows.net (allowedDomains)",
+      "detail": "covers hosts anyone can publish to (blob.core.windows.net, in the default list)"
+    },
+    {
+      "rule": "domain-wildcard-broad",
+      "severity": "medium",
+      "scope": "local",
+      "item": "*.ngrok.io (WebFetch(domain:) allow rule)",
+      "detail": "covers hosts anyone can publish to (ngrok.io, in the default list)"
+    },
+    {
+      "rule": "escape-hatch-open",
+      "severity": "medium",
+      "scope": "default",
+      "item": "sandbox.allowUnsandboxedCommands",
+      "detail": "Claude can retry a failed command unsandboxed (no prompt in bypassPermissions mode, or when an allow rule matches); set it to false, or add the ask rule Bash(dangerouslyDisableSandbox:true)"
+    },
+    {
+      "rule": "excluded-command-broad",
+      "severity": "medium",
+      "scope": "project",
+      "item": "python scripts/load_data.py *",
+      "detail": "runs an interpreter (python) outside the sandbox with your full access"
+    },
+    {
+      "rule": "fail-open",
+      "severity": "medium",
+      "scope": "default",
+      "item": "sandbox.failIfUnavailable",
+      "detail": "if the sandbox cannot start (missing dependency, unsupported platform) commands run unsandboxed"
+    },
+    {
+      "rule": "strict-allowlist-ignored-scope",
+      "severity": "medium",
+      "scope": "local",
+      "item": "sandbox.network.strictAllowlist",
+      "detail": "has no effect in project or local settings; set it in user or managed settings"
+    }
+  ],
+  "verify": [
+    {
+      "command": "touch ~/sandbox-probe",
+      "expect": "fails (Operation not permitted or Read-only file system)"
+    },
+    {
+      "command": "curl --noproxy '*' https://example.com",
+      "expect": "fails with Could not resolve host"
+    },
+    {
+      "command": "curl -sS -o /dev/null -w \"%{http_code}\" https://<a host under com>",
+      "expect": "connects (any HTTP status from the server, not a proxy 403)"
+    },
+    {
+      "command": "curl -sS -o /dev/null -w \"%{http_code}\" https://<a host under blob.core.windows.net>",
+      "expect": "connects (any HTTP status from the server, not a proxy 403)"
+    },
+    {
+      "command": "curl -sS -o /dev/null -w \"%{http_code}\" https://registry.npmjs.org",
+      "expect": "connects (any HTTP status from the server, not a proxy 403)"
+    },
+    {
+      "command": "curl -sS -o /dev/null -w \"%{http_code}\" https://<a host under ngrok.io>",
+      "expect": "connects (any HTTP status from the server, not a proxy 403)"
+    }
+  ],
+  "counts": {
+    "low": 0,
+    "medium": 11,
+    "high": 12
+  }
+}

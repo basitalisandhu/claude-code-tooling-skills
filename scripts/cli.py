@@ -17,7 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 PROG = "claude-code-tooling"
 HERE = Path(__file__).resolve().parent
@@ -69,6 +69,11 @@ COMMANDS: dict[str, tuple[str, str, str]] = {
         "skill-portability-check",
         "portability_check.py",
         "Report what in a skill folder breaks on other hosts or operating systems",
+    ),
+    "sandbox-review": (
+        "sandbox-config-review",
+        "sandbox_review.py",
+        "Review sandbox settings across scopes, show what is enforced and flag what leaves it open",
     ),
 }
 
