@@ -1,8 +1,8 @@
-# Claude Code skills for keeping your Claude Code setup safe and tidy: review third-party skills, lint and evaluate your own, audit context budget, build least-privilege permissions, author hooks, find collisions and portability problems
+# Claude Code skills for keeping your Claude Code setup safe and tidy: review third-party skills, lint and evaluate your own, audit context budget, build least-privilege permissions, review the sandbox, author hooks, find collisions and portability problems
 
-**Eight skills, each with an offline, standard-library Python script and tests: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, hook-author, skill-collision-check and skill-portability-check.**
+**Nine skills, each with an offline, standard-library Python script and tests: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, sandbox-config-review, hook-author, skill-collision-check and skill-portability-check.**
 
-claude-code-tooling-skills is a Claude Code plugin for the upkeep of Claude Code itself. A setup grows by accretion: skills and plugins installed from other people's repositories, descriptions written once and never measured, memory files and MCP servers that fill the context before the first word, permission rules added one "always allow" at a time, hooks copied from examples, two skills with the same name, a script that works on one laptop only. Each skill here turns one of those into a check with a script that reads local files, applies stated rules, and reports what it found with the file and line, leaving the decision to you.
+claude-code-tooling-skills is a Claude Code plugin for the upkeep of Claude Code itself. A setup grows by accretion: skills and plugins installed from other people's repositories, descriptions written once and never measured, memory files and MCP servers that fill the context before the first word, permission rules added one "always allow" at a time, a sandbox whose settings are spread over four scopes, hooks copied from examples, two skills with the same name, a script that works on one laptop only. Each skill here turns one of those into a check with a script that reads local files, applies stated rules, and reports what it found with the file and line, leaving the decision to you.
 
 **Who it is for:** people who write or maintain Claude Code skills and plugins, teams that share a `.claude/` folder in a repository, and anyone about to install a skill or plugin they did not write.
 
@@ -30,7 +30,7 @@ Questions, bugs and ideas: open an issue on this repository. Security reports: s
 3. **Without Claude Code**: run the scripts from a clone (`python3 scripts/cli.py <subcommand>`), build the Python package with `pip install .` (it installs the `claude-code-tooling` command; it is not on PyPI), or use the container image `ghcr.io/basitalisandhu/claude-code-tooling-skills`, which `publish-github-packages.yml` builds for linux/amd64 and linux/arm64 when a version tag is pushed, signed with cosign (keyless), with a build provenance attestation and an SPDX SBOM on the GitHub Release:
 
    ```bash
-   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.1.1 portability /work/skills
+   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.2.0 portability /work/skills
    ```
 
 After a copy install, each SKILL.md says where its script is relative to the skill folder.
@@ -45,6 +45,7 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 | `hook-scaffold` | `hook_scaffold.py` (hook-author) |
 | `collisions` | `skill_collisions.py` (skill-collision-check) |
 | `portability` | `portability_check.py` (skill-portability-check) |
+| `sandbox-review` | `sandbox_review.py` (sandbox-config-review) |
 
 ## When to use this
 
@@ -53,6 +54,7 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 - You rewrote a description and want to know whether it now triggers on more of the right requests and fewer of the wrong ones. `skill-trigger-eval`
 - Sessions compact early, or you are about to add another MCP server or skill pack. `context-budget-audit`
 - You keep approving the same prompts, or `/permissions` shows a wildcard nobody remembers adding. `permissions-builder`
+- You turned on the sandbox and want to know what it actually enforces, or cloned a repository whose `.claude/settings.json` has a `sandbox` block. `sandbox-config-review`
 - A team rule ("never read .env", "summarise before stopping") should run every time, not depend on memory. `hook-author`
 - The wrong skill ran, or a new plugin arrived with a skill name you already use. `skill-collision-check`
 - A skill works on your Mac and fails for a colleague on Windows or in Linux CI. `skill-portability-check`
@@ -66,6 +68,7 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 | `skill-trigger-eval` | "will this description trigger?" | `trigger_eval.py` | none |
 | `context-budget-audit` | "why is my context so full?" | `context_budget.py` | mcp-tools-lint input files |
 | `permissions-builder` | "set up permissions for this repo" | `perm_merge.py` | claude-mcp-allow, claude-perm-sim |
+| `sandbox-config-review` | "is my sandbox actually locked down?" | `sandbox_review.py` | none |
 | `hook-author` | "add a hook that blocks this command" | `hook_scaffold.py` | cc-hooks |
 | `skill-collision-check` | "why did the wrong skill run?" | `skill_collisions.py` | none |
 | `skill-portability-check` | "will this skill work on Windows?" | `portability_check.py` | none |
@@ -109,6 +112,42 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 | Reads | settings files, the block `claude-mcp-allow` prints, and text files of `deny`, `ask` and `allow` rules |
 | Does | merges and de-duplicates, keeps the stricter list on a conflict, flags broad allows and malformed rules, orders deny before ask before allow, diffs against the current file; the skill then tests the result with `claude-perm-sim explain`, `bypass` and `lint` |
 | Produces | a report, or with `--emit settings` the whole settings file with the merged permissions and every other key kept |
+
+### sandbox-config-review
+
+| | |
+|---|---|
+| Reads | `.claude/settings.json` and `.claude/settings.local.json` of a project, and the user and managed settings files you name |
+| Does | merges the `sandbox` keys and the `WebFetch(domain:...)`, `Read(...)` and `Bash(dangerouslyDisableSandbox:true)` permission rules the way <https://code.claude.com/docs/en/sandboxing> says (managed Boolean keys win, arrays merge, keys a repository cannot set, admin-required and strict-allowlist locks), keeping the scope of every value |
+| Produces | the effective values with their source, the allowed and denied domains, findings (sandbox off, fail-open, escape hatch, broad excludedCommands and domain wildcards, readable credentials, filesystem isolation off, all Unix sockets, weaker isolation, proxy ports, repository loosening, strictAllowlist in a scope that ignores it) and a printed list of curl checks to run as sandboxed commands |
+
+Sample run on a synthetic project (output trimmed):
+
+```bash
+mkdir -p demo/.claude && printf '{"sandbox": {"enabled": true, "excludedCommands": ["bash *"], "network": {"allowedDomains": ["registry.npmjs.org", "*.ngrok.io"]}}}\n' > demo/.claude/settings.json
+python3 scripts/cli.py sandbox-review --project demo --platform linux
+```
+
+```text
+## Findings
+
+- high excluded-command-broad (project) `bash *`: runs a shell (bash) outside the sandbox with your full access
+- high repo-loosens (project) `allowedDomains: *.ngrok.io`: set in the committed .claude/settings.json, so anyone who clones the repository gets it
+- high repo-loosens (project) `excludedCommands: bash *`: set in the committed .claude/settings.json, so anyone who clones the repository gets it
+- medium credentials-readable (default) `.env`: .env files in the project: reads of most of the machine are allowed by default and nothing denies this path
+...
+- medium domain-wildcard-broad (project) `*.ngrok.io (allowedDomains)`: covers hosts anyone can publish to (ngrok.io, in the default list)
+- medium escape-hatch-open (default) `sandbox.allowUnsandboxedCommands`: Claude can retry a failed command unsandboxed (no prompt in bypassPermissions mode, or when an allow rule matches); set it to false, or add the ask rule Bash(dangerouslyDisableSandbox:true)
+- medium fail-open (default) `sandbox.failIfUnavailable`: if the sandbox cannot start (missing dependency, unsupported platform) commands run unsandboxed
+
+## Verify enforcement
+...
+curl -sS -o /dev/null -w "%{http_code}" https://registry.npmjs.org  # connects (any HTTP status from the server, not a proxy 403)
+curl -sS -o /dev/null -w "%{http_code}" https://<a host under ngrok.io>  # connects (any HTTP status from the server, not a proxy 403)
+curl -sS -o /dev/null -w "%{http_code}" https://example.com  # refused: a 403 from the sandbox proxy or a network prompt (decline it)
+```
+
+The exit code is 1 (high findings). Permission rules are not this layer: they match the text of a call, while the sandbox is enforced on the running process, so the two skills are used together.
 
 ### hook-author
 
@@ -156,7 +195,7 @@ plugins/cc-setup-tooling/
                  _skillmd.py                          shared front matter reader (identical copies, checked by a test)
 scripts/cli.py                                        the claude-code-tooling dispatcher (container and package entrypoint)
 scripts/validate_plugin.py                            structure, front matter, scripts, READMEs, house style
-tests/                                                pytest suite, offline; inputs are built in each test
+tests/                                                pytest suite, offline; inputs are built in each test, golden reports in tests/golden/
 ```
 
 ## Development
@@ -183,6 +222,9 @@ No. The host reads descriptions with a language model. The script measures word 
 
 **Are the token numbers exact?**
 No. context-budget-audit and skill-description-linter estimate tokens as characters / 4 and say so.
+
+**Does sandbox-config-review prove the sandbox works?**
+No. It reads settings files and applies the merge rules on the official page; it cannot see the `--settings` flag, server-managed settings or missing dependencies. It prints curl checks for you to run as sandboxed commands in a session, which is how you confirm enforcement.
 
 **Will permissions-builder edit my settings.json?**
 No. It prints a report or a proposed settings file; copying it into place is your step, after testing it with claude-perm-sim.

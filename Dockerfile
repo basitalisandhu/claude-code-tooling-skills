@@ -26,7 +26,7 @@ RUN set -e; for d in /tmp/skills/*/scripts; do \
 FROM ${PYTHON_IMAGE}
 ARG VERSION=0.0.0-dev
 LABEL org.opencontainers.image.title="claude-code-tooling-skills" \
-      org.opencontainers.image.description="Skill inventory, description lint, trigger evaluation, context budget, permission merge, hook scaffold, collision and portability checks behind one command" \
+      org.opencontainers.image.description="Skill inventory, description lint, trigger evaluation, context budget, permission merge, hook scaffold, collision and portability checks and a sandbox settings review behind one command" \
       org.opencontainers.image.source="https://github.com/basitalisandhu/claude-code-tooling-skills" \
       org.opencontainers.image.url="https://github.com/basitalisandhu/claude-code-tooling-skills" \
       org.opencontainers.image.licenses="MIT" \
