@@ -136,3 +136,21 @@ def test_golden_markdown(tmp_path):
         "## Largest every-turn items (top 15)\n\n| # | Item | Category | Tokens |\n|---|---|---|---|\n"
         "| 1 | ./CLAUDE.md | memory | 11 |\n\n## Findings\n\nNone.\n"
     )
+
+
+def test_disable_model_invocation_keeps_the_listing_out_of_the_total(tmp_path):
+    long = "Deploy " + "a" * 1600 + ". Use when x. Not for y."
+    proj = write_files(
+        tmp_path / "p",
+        {
+            ".claude/skills/deploy/SKILL.md": skill_md("deploy", long, disable_model_invocation="true"),
+            ".claude/skills/review/SKILL.md": skill_md("review", "Review code. Use when x. Not for y."),
+        },
+    )
+    rc, rep = run_json(mod, [str(proj), *AS_OF])
+    deploy = items(rep)["deploy (./.claude/skills/deploy)"]
+    review = items(rep)["review (./.claude/skills/review)"]
+    assert deploy["load"] == "not loaded" and "disable-model-invocation" in deploy["note"]
+    assert review["load"] == "every turn"
+    assert rep["every_turn_tokens"] == review["tokens"]
+    assert not any(r == "description-truncated" for r, _ in rules(rep)) and rc == 0

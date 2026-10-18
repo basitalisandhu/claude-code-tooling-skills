@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format follows Keep
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-18
+
+Every skill was checked against the current Claude Code documentation (settings reference, sandboxing, permissions, hooks, plugins reference and skills pages, read 2026-10-18). What had gone stale is fixed below, each with a test.
+
+### Added
+
+- `permissions-builder`: `allow-glob-ignored` (an allow rule such as `*`, `B*` or `mcp__*` with no literal `mcp__<server>__` prefix approves nothing, so it is dropped; it used to be reported as broad or as malformed), `wildcard-before-subcommand` (`Bash(* --version)`, `Bash(git * main)`), `colon-star-literal` (`:*` before the end of a pattern, where the colon is literal). Deny and ask rules may now glob the tool name (`*`, `mcp__*`), as the permissions page allows. `PowerShell` and `PowerShell(*)` count as broad allows.
+- `sandbox-config-review`: `network.allowMachLookup` (`mach-lookup-all` when it holds `"*"`, ignored from the repository when the sandbox is admin-required), `filesystem.allowManagedReadPathsOnly` (only managed `allowRead` entries count), the managed read lock (a repository `allowRead` cannot re-open a path managed or user settings deny), `managed-only-key-ignored` for `allowManagedDomainsOnly`, `allowManagedReadPathsOnly`, `bwrapPath` and `socatPath` set outside managed settings, and type checks for `ignoreViolations`, `bwrapPath` and `socatPath`.
+- README: a quick start that runs as written from a clone, with its real output.
+
+### Fixed
+
+- `skill-portability-check`: the copy-install note this author's other packs adopted ("If this skill was copied ... without the plugin system ... Replace `${CLAUDE_PLUGIN_ROOT}/skills/x` with the path to this skill's folder") was still reported as `plugin-root-no-fallback`, because it names the variable; 8 false findings on ways-of-working-skills and repo-engineering-skills are gone. The hint now also offers `${CLAUDE_SKILL_DIR}/scripts/<file>`, which Claude Code resolves for personal, project and plugin skills.
+- `context-budget-audit`: a skill with `disable-model-invocation: true` was counted in the every-turn total; its description stays out of context, so it is now listed as not loaded.
+- `sandbox-config-review`: the documented command `--user ~/.claude/settings.json` exited 2 on a fresh install with no user settings file; a missing `--user` file is now an empty user scope with a note. A missing `--managed` file still exits 2.
+- `perm_merge.py`: a text source that is not UTF-8 exits 2 instead of a traceback.
+- `hook-author`: the Stop row of the action table says that a warn keeps Claude working, with the loop guard.
+
 ## [0.2.0] - 2026-10-16
 
 ### Added

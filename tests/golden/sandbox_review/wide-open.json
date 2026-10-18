@@ -92,6 +92,11 @@
       "value": null,
       "source": null,
       "ignored": []
+    },
+    "filesystem.allowManagedReadPathsOnly": {
+      "value": null,
+      "source": null,
+      "ignored": []
     }
   },
   "lists": {
@@ -147,6 +152,7 @@
     ],
     "network.deniedDomains": [],
     "network.allowUnixSockets": [],
+    "network.allowMachLookup": [],
     "network.httpProxyPort": [],
     "network.socksProxyPort": []
   },

@@ -16,10 +16,21 @@ claude-code-tooling-skills is a Claude Code plugin for the upkeep of Claude Code
 Quickstart: open Claude Code in a folder of skills and ask "will this skill work on Windows?" or "why is my context so full?". Or run a script directly from a clone of this repository:
 
 ```bash
-python3 scripts/cli.py portability path/to/my-skill
-python3 scripts/cli.py desc-lint path/to/skills --diff
-python3 scripts/cli.py context-budget . --home ~
+printf 'allow Bash(*)\nallow mcp__*\nallow Bash(git * main)\ndeny Bash(rm -rf *)\n' > rules.txt
+python3 scripts/cli.py perm-merge --source rules.txt
 ```
+
+Real output, the findings part (exit code 1):
+
+```text
+## Findings
+
+- allow-glob-ignored (allow) `mcp__*`: from rules.txt; Claude Code skips an allow glob without a literal mcp__<server>__ prefix and approves nothing; dropped
+- wildcard-before-subcommand (allow) `Bash(git * main)`: the * stands in for the subcommand, so every git subcommand and option matches
+- broad-allow (allow) `Bash(*)`: covers a whole tool or server (from rules.txt)
+```
+
+Then point the other checks at your own setup: `python3 scripts/cli.py portability path/to/my-skill`, `python3 scripts/cli.py context-budget . --home ~`, `python3 scripts/cli.py sandbox-review --project . --user ~/.claude/settings.json`.
 
 Questions, bugs and ideas: open an issue on this repository. Security reports: see [SECURITY.md](SECURITY.md).
 
@@ -30,7 +41,7 @@ Questions, bugs and ideas: open an issue on this repository. Security reports: s
 3. **Without Claude Code**: run the scripts from a clone (`python3 scripts/cli.py <subcommand>`), build the Python package with `pip install .` (it installs the `claude-code-tooling` command; it is not on PyPI), or use the container image `ghcr.io/basitalisandhu/claude-code-tooling-skills`, which `publish-github-packages.yml` builds for linux/amd64 and linux/arm64 when a version tag is pushed, signed with cosign (keyless), with a build provenance attestation and an SPDX SBOM on the GitHub Release:
 
    ```bash
-   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.2.0 portability /work/skills
+   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.3.0 portability /work/skills
    ```
 
 After a copy install, each SKILL.md says where its script is relative to the skill folder.

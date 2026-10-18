@@ -145,3 +145,46 @@ def test_golden_markdown(tmp_path):
         "## deny (1)\n\n- `Read(./.env)`\n\n## ask (0)\n\nNone.\n\n## allow (1)\n\n- `Bash(npm test)`\n\n"
         "## Changes against the current settings\n\nNo --current file; every rule is new.\n\n## Findings\n\nNone.\n"
     )
+
+
+def test_unanchored_allow_globs_are_dropped_but_deny_globs_are_kept(tmp_path):
+    write_files(tmp_path, {"s.json": settings(allow=["*", "B*", "mcp__*", "mcp__git*__x", "mcp__github__get_*"],
+                                               deny=["*", "mcp__*"])})  # fmt: skip
+    rc, rep = run_json(mod, ["--source", str(tmp_path / "s.json"), "--json"])
+    ignored = {i for r, i in rules(rep) if r == "allow-glob-ignored"}
+    assert rc == 1 and ignored == {"*", "B*", "mcp__*", "mcp__git*__x"}
+    assert rep["merged"]["deny"] == ["*", "mcp__*"]
+    assert rep["merged"]["allow"] == ["mcp__github__get_*"]
+    assert not any(r == "malformed-rule" for r, _ in rules(rep))
+
+
+def test_powershell_whole_tool_allows_are_broad(tmp_path):
+    write_files(tmp_path, {"s.json": settings(allow=["PowerShell", "PowerShell(*)", "PowerShell(Get-ChildItem *)"])})
+    _, rep = run_json(mod, ["--source", str(tmp_path / "s.json"), "--json"])
+    assert {i for r, i in rules(rep) if r == "broad-allow"} == {"PowerShell", "PowerShell(*)"}
+
+
+def test_wildcard_before_subcommand_and_literal_colon_star(tmp_path):
+    write_files(
+        tmp_path,
+        {
+            "s.json": settings(
+                allow=["Bash(git * main)", "Bash(* --version)", "Bash(git log *)", "Bash(npm run test:*)"],
+                ask=["Bash(git:* push)", "Bash(git * main)"],
+            )
+        },
+    )
+    rc, rep = run_json(mod, ["--source", str(tmp_path / "s.json"), "--json"])
+    got = {(r, i) for r, i in rules(rep) if r in ("wildcard-before-subcommand", "colon-star-literal")}
+    assert rc == 1 and got == {
+        ("wildcard-before-subcommand", "Bash(* --version)"),
+        ("colon-star-literal", "Bash(git:* push)"),
+    }
+    # the ask copy of Bash(git * main) wins over the allow copy, so only the ask stays and asks are not warned
+    assert "Bash(git * main)" in rep["merged"]["ask"]
+
+
+def test_text_source_that_is_not_utf8_exits_2(tmp_path):
+    (tmp_path / "rules.txt").write_bytes(b"allow Bash(ls \xff)\n")
+    rc, _, err = run_main(mod, ["--source", str(tmp_path / "rules.txt")])
+    assert rc == 2 and "not UTF-8" in err
