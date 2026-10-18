@@ -258,7 +258,18 @@ def test_wrong_types_exit_2(tmp_path):
 def test_bad_usage_exits_2(tmp_path):
     assert run_main(mod, [])[0] == 2
     assert run_main(mod, ["--project", str(tmp_path / "missing")])[0] == 2
-    assert run_main(mod, ["--user", str(tmp_path / "missing.json")])[0] == 2
+    assert run_main(mod, ["--managed", str(tmp_path / "missing.json")])[0] == 2
+
+
+def test_missing_user_settings_file_is_an_empty_user_scope(tmp_path):
+    """A fresh install has no ~/.claude/settings.json; the documented command must still run."""
+    (tmp_path / "p").mkdir()
+    rc, out, err = run_main(
+        mod, ["--project", str(tmp_path / "p"), "--user", str(tmp_path / "missing.json"), "--platform", "linux"]
+    )
+    assert rc == 1 and "sandbox-off" in out and "user settings are empty" in err
+    (tmp_path / "dir.json").mkdir()
+    assert run_main(mod, ["--project", str(tmp_path / "p"), "--user", str(tmp_path / "dir.json")])[0] == 2
 
 
 def test_empty_project_reports_sandbox_off_and_skips_active_checks(tmp_path):
@@ -386,3 +397,92 @@ def test_cli_dispatches_sandbox_review(tmp_path):
     assert result.returncode == 1
     off = [f for f in json.loads(result.stdout)["findings"] if f["rule"] == "sandbox-off"]
     assert off[0]["detail"] == "set to false in project settings"
+
+
+def test_mach_lookup_star_is_flagged_and_ignored_from_the_repo_when_admin_required(tmp_path):
+    project = {"sandbox": {"enabled": True, "network": {"allowMachLookup": ["*"]}}}
+    write_files(tmp_path / "p", {".claude/settings.json": js(project)})
+    _, rep = run_json(mod, ["--project", str(tmp_path / "p"), "--platform", "macos"])
+    assert ("mach-lookup-all", "medium", "sandbox.network.allowMachLookup: *") in found(rep)
+    assert ("repo-loosens", "high", "network.allowMachLookup: *") in found(rep)
+    write_files(tmp_path, {"managed.json": js({"sandbox": {"allowUnsandboxedCommands": False}})})
+    _, rep = run_json(
+        mod, ["--project", str(tmp_path / "p"), "--managed", str(tmp_path / "managed.json"), "--platform", "macos"]
+    )
+    assert "mach-lookup-all" not in rules(rep)
+    assert ("repo-loosens", "low", "network.allowMachLookup: *") in found(rep)
+    named = {"sandbox": {"enabled": True, "network": {"allowMachLookup": ["com.apple.coresimulator.*"]}}}
+    write_files(tmp_path / "q", {".claude/settings.json": js(named)})
+    _, rep = run_json(mod, ["--project", str(tmp_path / "q"), "--platform", "macos"])
+    assert "mach-lookup-all" not in rules(rep) and "repo-loosens" not in rules(rep)
+
+
+def test_managed_only_keys_set_elsewhere_are_reported(tmp_path):
+    project = {
+        "sandbox": {
+            "enabled": True,
+            "bwrapPath": "/tmp/bwrap",
+            "network": {"allowManagedDomainsOnly": True},
+            "filesystem": {"allowManagedReadPathsOnly": True},
+        }
+    }
+    write_files(tmp_path / "p", {".claude/settings.json": js(project)})
+    _, rep = run_json(mod, ["--project", str(tmp_path / "p"), "--platform", "linux", "--fail-on", "low"])
+    items = {f["item"] for f in rep["findings"] if f["rule"] == "managed-only-key-ignored"}
+    assert items == {
+        "sandbox.bwrapPath",
+        "sandbox.network.allowManagedDomainsOnly",
+        "sandbox.filesystem.allowManagedReadPathsOnly",
+    }
+    assert rep["admin_required"] is False
+    assert rep["effective"]["filesystem.allowManagedReadPathsOnly"]["value"] is None
+
+
+def test_repository_allow_read_cannot_reopen_a_managed_deny(tmp_path):
+    managed = {"sandbox": {"filesystem": {"denyRead": ["~/"]}}}
+    project = {"sandbox": {"enabled": True, "filesystem": {"allowRead": ["~/.ssh", "~/.aws"]}}}
+    write_files(tmp_path, {"managed.json": js(managed)})
+    write_files(tmp_path / "p", {".claude/settings.json": js(project)})
+    _, rep = run_json(
+        mod, ["--project", str(tmp_path / "p"), "--managed", str(tmp_path / "managed.json"), "--platform", "linux"]
+    )
+    readable = {f["item"] for f in rep["findings"] if f["rule"] == "credentials-readable"}
+    assert "~/.ssh" not in readable and "~/.aws" not in readable
+    # the same allowRead from user settings does re-open it
+    write_files(tmp_path, {"user.json": js(project)})
+    write_files(tmp_path / "q", {".claude/settings.json": js({"sandbox": {"enabled": True}})})
+    _, rep = run_json(
+        mod,
+        ["--project", str(tmp_path / "q"), "--user", str(tmp_path / "user.json"), "--managed",
+         str(tmp_path / "managed.json"), "--platform", "linux"],
+    )  # fmt: skip
+    assert "~/.ssh" in {f["item"] for f in rep["findings"] if f["rule"] == "credentials-readable"}
+
+
+def test_allow_managed_read_paths_only_drops_other_allow_read_entries(tmp_path):
+    managed = {"sandbox": {"filesystem": {"allowManagedReadPathsOnly": True}}}
+    user = {"sandbox": {"enabled": True, "filesystem": {"denyRead": ["~/"], "allowRead": ["~/.aws"]}}}
+    write_files(tmp_path, {"managed.json": js(managed), "user.json": js(user)})
+    (tmp_path / "p").mkdir()
+    args = ["--project", str(tmp_path / "p"), "--user", str(tmp_path / "user.json"), "--platform", "linux"]
+    _, rep = run_json(mod, args)
+    assert "~/.aws" in {f["item"] for f in rep["findings"] if f["rule"] == "credentials-readable"}
+    _, rep = run_json(mod, [*args, "--managed", str(tmp_path / "managed.json")])
+    assert "~/.aws" not in {f["item"] for f in rep["findings"] if f["rule"] == "credentials-readable"}
+    entry = rep["lists"]["filesystem.allowRead"][0]
+    assert entry["honoured"] is False and "allowManagedReadPathsOnly" in entry["reason"]
+
+
+def test_new_keys_of_the_wrong_type_exit_2(tmp_path):
+    for bad in (
+        {"sandbox": {"ignoreViolations": ["/etc/hosts"]}},
+        {"sandbox": {"ignoreViolations": {"*": "/etc/hosts"}}},
+        {"sandbox": {"bwrapPath": 1}},
+        {"sandbox": {"network": {"allowMachLookup": "com.apple.*"}}},
+        {"sandbox": {"filesystem": {"allowManagedReadPathsOnly": "yes"}}},
+    ):
+        write_files(tmp_path / "p", {".claude/settings.json": js(bad)})
+        assert run_main(mod, ["--project", str(tmp_path / "p")])[0] == 2, bad
+    ok = {"sandbox": {"enabled": True, "ignoreViolations": {"*": ["/etc/hosts"]}}}
+    write_files(tmp_path / "p", {".claude/settings.json": js(ok)})
+    assert run_main(mod, ["--project", str(tmp_path / "p"), "--platform", "linux"])[0] in (0, 1)

@@ -22,6 +22,7 @@ Rules from https://code.claude.com/docs/en/sandboxing.
 | `sandbox.enableWeakerNestedSandbox` | not set | - |
 | `sandbox.enableWeakerNetworkIsolation` | not set | - |
 | `sandbox.allowAppleEvents` | not set | - |
+| `sandbox.filesystem.allowManagedReadPathsOnly` | not set | - |
 
 ### sandbox.excludedCommands
 

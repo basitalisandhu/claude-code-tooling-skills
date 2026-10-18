@@ -148,3 +148,26 @@ def test_this_plugin_passes_its_own_check():
 
     rc, rep = run_json(mod, [str(ROOT / "plugins" / "cc-setup-tooling")])
     assert rc == 0, rep["findings"]
+
+
+def test_skill_dir_paths_are_portable_and_the_hint_names_them(tmp_path):
+    body = '```bash\npython3 "${CLAUDE_SKILL_DIR}/scripts/run.py" .\n```\n\n## Limits\n\n- None known.\n'
+    write_files(tmp_path / "ok", {"SKILL.md": skill_md("ok", "Run it. Use when x. Not for y.", body)})
+    rc, rep = run_json(mod, [str(tmp_path / "ok")])
+    assert rc == 0 and rep["findings"] == []
+    body = '```bash\npython3 "${CLAUDE_PLUGIN_ROOT}/skills/bad/scripts/run.py" .\n```\n\n## Limits\n\n- None.\n'
+    write_files(tmp_path / "bad", {"SKILL.md": skill_md("bad", "Run it. Use when x. Not for y.", body)})
+    rc, rep = run_json(mod, [str(tmp_path / "bad")])
+    hint = next(f["hint"] for f in rep["findings"] if f["rule"] == "plugin-root-no-fallback")
+    assert rc == 1 and "${CLAUDE_SKILL_DIR}/scripts/<file>" in hint
+
+
+def test_copy_install_note_that_names_the_variable_counts_as_a_fallback(tmp_path):
+    body = (
+        '```bash\npython3 "${CLAUDE_PLUGIN_ROOT}/skills/note/scripts/run.py" .\n```\n\n'
+        "If this skill was copied into `.claude/skills/` without the plugin system, `${CLAUDE_PLUGIN_ROOT}` is empty. "
+        "Replace `${CLAUDE_PLUGIN_ROOT}/skills/note` with the path to this skill's folder.\n\n## Limits\n\n- None.\n"
+    )
+    write_files(tmp_path / "note", {"SKILL.md": skill_md("note", "Run it. Use when x. Not for y.", body)})
+    rc, rep = run_json(mod, [str(tmp_path / "note")])
+    assert rc == 0 and rep["findings"] == []
