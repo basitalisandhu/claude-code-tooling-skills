@@ -69,7 +69,7 @@ jobs:
         run: |
           docker build --build-arg VERSION=ci -t claude-code-tooling-skills:ci .
           docker run --rm claude-code-tooling-skills:ci --help > help.txt && grep "^usage: claude-code-tooling <subcommand>" help.txt
-          for s in inventory desc-lint trigger-eval context-budget perm-merge hook-scaffold collisions portability sandbox-review; do docker run --rm claude-code-tooling-skills:ci "$s" --help > /dev/null; done
+          for s in inventory desc-lint trigger-eval context-budget perm-merge hook-scaffold collisions portability sandbox-review unattended-preflight subagent-scope; do docker run --rm claude-code-tooling-skills:ci "$s" --help > /dev/null; done
           mkdir -p sample/demo/scripts && printf 'print(open("notes.txt").read())\n' > sample/demo/scripts/show.py
           set +e
           docker run --rm -v "$PWD/sample:/work:ro" claude-code-tooling-skills:ci portability /work/demo > port.md; test $? -eq 1 || exit 1
@@ -80,6 +80,11 @@ jobs:
           docker run --rm -v "$PWD/sample:/work:ro" claude-code-tooling-skills:ci sandbox-review --project /work/proj --platform linux > sbx.md; test $? -eq 1 || exit 1
           set -e
           grep "excluded-command-broad" sbx.md
+          mkdir -p sample/agents-proj/.claude/agents && printf -- '---\nname: code-reviewer\ndescription: Reviews diffs for bugs.\n---\nBody.\n' > sample/agents-proj/.claude/agents/code-reviewer.md
+          set +e
+          docker run --rm -v "$PWD/sample:/work:ro" claude-code-tooling-skills:ci subagent-scope --project /work/agents-proj > sa.md; test $? -eq 1 || exit 1
+          set -e
+          grep "inherits-all-tools" sa.md
           docker run --rm claude-code-tooling-skills:ci --version
           test "$(docker run --rm --entrypoint id claude-code-tooling-skills:ci -u)" = "1000"
           test "$(docker run --rm --entrypoint pwd claude-code-tooling-skills:ci)" = "/work"

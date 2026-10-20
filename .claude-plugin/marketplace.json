@@ -1,20 +1,20 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "claude-code-tooling-skills",
-  "description": "Nine Claude Code skills for keeping a Claude Code setup safe and tidy: review third-party skills before install, lint and evaluate your own skill descriptions, audit the context budget, build least-privilege permissions, review the sandbox settings, author and test hooks, and find skill collisions and portability problems.",
+  "description": "Eleven Claude Code skills for keeping a Claude Code setup safe and tidy: review third-party skills before install, lint and evaluate your own skill descriptions, audit the context budget, build least-privilege permissions, review the sandbox settings, preflight unattended runs for permission prompts, review subagent tool scope, author and test hooks, and find skill collisions and portability problems.",
   "owner": {
     "name": "Muhammad Basit Ali",
     "url": "https://github.com/basitalisandhu"
   },
   "metadata": {
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "plugins": [
     {
       "name": "cc-setup-tooling",
       "source": "./plugins/cc-setup-tooling",
-      "description": "Nine skills, each with a tested standard-library script over local files: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, sandbox-config-review, hook-author, skill-collision-check and skill-portability-check. They drive skill-scan-gate, cc-plugin-lock, claude-perm-sim, claude-mcp-allow and cc-hooks where those are installed. No network.",
-      "version": "0.3.0",
+      "description": "Eleven skills, each with a tested standard-library script over local files: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, sandbox-config-review, unattended-run-preflight, subagent-tool-scope-review, hook-author, skill-collision-check and skill-portability-check. They drive skill-scan-gate, cc-plugin-lock, claude-perm-sim, claude-mcp-allow and cc-hooks where those are installed. No network.",
+      "version": "0.4.0",
       "author": {
         "name": "Muhammad Basit Ali",
         "url": "https://github.com/basitalisandhu"
@@ -33,7 +33,9 @@
         "sandbox",
         "hooks",
         "skill-collisions",
-        "portability"
+        "portability",
+        "subagents",
+        "unattended"
       ],
       "category": "development",
       "tags": [

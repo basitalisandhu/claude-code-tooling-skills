@@ -1,6 +1,6 @@
-# Claude Code skills for keeping your Claude Code setup safe and tidy: review third-party skills, lint and evaluate your own, audit context budget, build least-privilege permissions, review the sandbox, author hooks, find collisions and portability problems
+# Claude Code skills for keeping your Claude Code setup safe and tidy: review third-party skills, lint and evaluate your own, audit context budget, build least-privilege permissions, review the sandbox, preflight unattended runs, scope subagent tools, author hooks, find collisions and portability problems
 
-**Nine skills, each with an offline, standard-library Python script and tests: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, sandbox-config-review, hook-author, skill-collision-check and skill-portability-check.**
+**Eleven skills, each with an offline, standard-library Python script and tests: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, sandbox-config-review, unattended-run-preflight, subagent-tool-scope-review, hook-author, skill-collision-check and skill-portability-check.**
 
 claude-code-tooling-skills is a Claude Code plugin for the upkeep of Claude Code itself. A setup grows by accretion: skills and plugins installed from other people's repositories, descriptions written once and never measured, memory files and MCP servers that fill the context before the first word, permission rules added one "always allow" at a time, a sandbox whose settings are spread over four scopes, hooks copied from examples, two skills with the same name, a script that works on one laptop only. Each skill here turns one of those into a check with a script that reads local files, applies stated rules, and reports what it found with the file and line, leaving the decision to you.
 
@@ -41,7 +41,7 @@ Questions, bugs and ideas: open an issue on this repository. Security reports: s
 3. **Without Claude Code**: run the scripts from a clone (`python3 scripts/cli.py <subcommand>`), build the Python package with `pip install .` (it installs the `claude-code-tooling` command; it is not on PyPI), or use the container image `ghcr.io/basitalisandhu/claude-code-tooling-skills`, which `publish-github-packages.yml` builds for linux/amd64 and linux/arm64 when a version tag is pushed, signed with cosign (keyless), with a build provenance attestation and an SPDX SBOM on the GitHub Release:
 
    ```bash
-   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.3.0 portability /work/skills
+   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.4.0 portability /work/skills
    ```
 
 After a copy install, each SKILL.md says where its script is relative to the skill folder.
@@ -57,6 +57,8 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 | `collisions` | `skill_collisions.py` (skill-collision-check) |
 | `portability` | `portability_check.py` (skill-portability-check) |
 | `sandbox-review` | `sandbox_review.py` (sandbox-config-review) |
+| `unattended-preflight` | `unattended_preflight.py` (unattended-run-preflight) |
+| `subagent-scope` | `subagent_scope.py` (subagent-tool-scope-review) |
 
 ## When to use this
 
@@ -66,6 +68,8 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 - Sessions compact early, or you are about to add another MCP server or skill pack. `context-budget-audit`
 - You keep approving the same prompts, or `/permissions` shows a wildcard nobody remembers adding. `permissions-builder`
 - You turned on the sandbox and want to know what it actually enforces, or cloned a repository whose `.claude/settings.json` has a `sandbox` block. `sandbox-config-review`
+- A scheduled task, routine, CI job or `claude -p` run stalls on a permission prompt, or you are about to move a prompt into one. `unattended-run-preflight`
+- You are adding an MCP server or installing a plugin with agents, and want to know which subagents get its tools. `subagent-tool-scope-review`
 - A team rule ("never read .env", "summarise before stopping") should run every time, not depend on memory. `hook-author`
 - The wrong skill ran, or a new plugin arrived with a skill name you already use. `skill-collision-check`
 - A skill works on your Mac and fails for a colleague on Windows or in Linux CI. `skill-portability-check`
@@ -80,6 +84,8 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 | `context-budget-audit` | "why is my context so full?" | `context_budget.py` | mcp-tools-lint input files |
 | `permissions-builder` | "set up permissions for this repo" | `perm_merge.py` | claude-mcp-allow, claude-perm-sim |
 | `sandbox-config-review` | "is my sandbox actually locked down?" | `sandbox_review.py` | none |
+| `unattended-run-preflight` | "why does my scheduled task stall on permission prompts?" | `unattended_preflight.py` | none |
+| `subagent-tool-scope-review` | "which of my subagents can use the GitHub MCP tools?" | `subagent_scope.py` | none |
 | `hook-author` | "add a hook that blocks this command" | `hook_scaffold.py` | cc-hooks |
 | `skill-collision-check` | "why did the wrong skill run?" | `skill_collisions.py` | none |
 | `skill-portability-check` | "will this skill work on Windows?" | `portability_check.py` | none |
@@ -159,6 +165,75 @@ curl -sS -o /dev/null -w "%{http_code}" https://example.com  # refused: a 403 fr
 ```
 
 The exit code is 1 (high findings). Permission rules are not this layer: they match the text of a call, while the sandbox is enforced on the running process, so the two skills are used together.
+
+### unattended-run-preflight
+
+| | |
+|---|---|
+| Reads | a session log of a previous run (`~/.claude/projects/<dir>/<session>.jsonl`) or a JSON list of calls, and the settings files the run loads |
+| Does | replays each distinct tool call against deny, ask and allow rules from every scope the way <https://code.claude.com/docs/en/permissions> describes (compound commands split, wrappers stripped, redirects checked as edits, read-only commands and working-directory reads need no approval), and marks calls the recorded run was refused |
+| Produces | the calls that would stall the run (or be refused in `dontAsk` mode), the calls a deny rule blocks, the narrowest allow rule for each, and a separate list of rules a person should decide on; `--emit-rules` prints the `permissions` block |
+
+Sample run on a synthetic project and call list:
+
+```bash
+mkdir -p nightly/.claude && printf '{"permissions": {"allow": ["Bash(npm run *)"], "deny": ["Read(./.env)"]}}\n' > nightly/.claude/settings.json
+printf '[{"tool": "Bash", "input": {"command": "git status && npm run report"}}, {"tool": "Bash", "input": {"command": "gh issue list --label bug"}}, {"tool": "mcp__github__create_issue", "input": {}}, {"tool": "Write", "input": {"file_path": "reports/nightly.md"}}]\n' > calls.json
+python3 scripts/cli.py unattended-preflight --project nightly --cwd nightly --calls calls.json
+```
+
+```text
+## Calls that would stop the run
+
+- **needs-approval** `Bash: gh issue list --label bug` (x1, calls.json[1]): `gh issue list --label bug`: no allow rule covers.
+- **needs-approval** `mcp__github__create_issue` (x1, calls.json[2]): no allow rule; the name says it changes something.
+- **needs-approval** `Write: ./reports/nightly.md` (x1, calls.json[3]): edit of ./reports/nightly.md inside the working directories, no allow rule.
+
+## Proposed allow rules
+
+- `Bash(gh issue list *)`
+- `Edit(./reports/**)`
+
+Decide before allowing (they change, publish or run arbitrary code, or an ask rule exists):
+
+- `mcp__github__create_issue`
+
+## Calls that run
+
+- `Bash: git status && npm run report`: every part is allowed
+```
+
+The exit code is 1 until every call runs. It approximates the documented matching and leans towards "needs approval" when unsure, so confirm with one supervised run in the same mode.
+
+### subagent-tool-scope-review
+
+| | |
+|---|---|
+| Reads | `.claude/agents/**/*.md`, user agent folders, plugin `agents/` folders, and `.mcp.json` or `~/.claude.json` for server names |
+| Does | applies the field rules on <https://code.claude.com/docs/en/sub-agents> (no `tools` line inherits every tool and every MCP server, `disallowedTools` removes tools, fields a plugin agent ignores, unknown fields ignored) and compares each agent's reach with its own description |
+| Produces | one row per agent (tools, MCP servers, write, shell, web) and findings: inherits-all-tools, lookalike-field (`allowed-tools` in an agent file), read-only-job-with-write-tools, bypass-mode, server-wide-mcp-grant, inline-mcp-server and front matter problems, with a narrower `tools` line for readers |
+
+Sample run on two synthetic agents:
+
+```bash
+mkdir -p demo-agents/.claude/agents
+printf -- '---\nname: code-reviewer\ndescription: Reviews diffs for bugs.\n---\nBody.\n' > demo-agents/.claude/agents/code-reviewer.md
+printf -- '---\nname: explorer\ndescription: Explores the codebase.\ntools: Read, Grep, Glob\n---\nBody.\n' > demo-agents/.claude/agents/explorer.md
+python3 scripts/cli.py subagent-scope --project demo-agents
+```
+
+```text
+| Agent | Scope | Tools | MCP | Writes | Shell | Web |
+|---|---|---|---|---|---|---|
+| `code-reviewer` | project | all (inherited) | all connected | yes | yes | yes |
+| `explorer` | project | Glob, Grep, Read | none | no | no | no |
+
+## Findings
+
+- high inherits-all-tools `project:.claude/agents/code-reviewer.md`: no `tools` line, so it inherits every built-in tool and every MCP tool the session connects. Fix: add a `tools` line with only what the job needs, for example `tools: Read, Grep, Glob`.
+```
+
+The exit code is 1. Pass `--mcp .mcp.json` to see the server names an inheriting agent reaches.
 
 ### hook-author
 
