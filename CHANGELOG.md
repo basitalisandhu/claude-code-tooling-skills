@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows Keep
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-20
+
+### Added
+
+- `unattended-run-preflight`: `unattended_preflight.py` replays the tool calls of a previous run (a Claude Code session log, where a refused call is marked) or a JSON list of calls against the deny, ask and allow rules of the managed, `--settings`, local, project and user scopes, following the permissions page: compound commands split, the fixed wrappers stripped, allow rules not matched past a leading assignment, output redirects checked as edits, built-in read-only commands and working-directory reads need no approval, `acceptEdits`, `dontAsk` and `bypassPermissions` modes. It lists the calls that would stall an unattended run (or be refused in `dontAsk`), the calls a deny rule blocks, the narrowest allow rule for each, and a separate list for rules that change, publish, comment or run a shell or interpreter. `--emit-rules` prints the `permissions` block. Exit 0, 1 when any call needs approval or is denied, 2 bad input. 18 tests. Subcommand `unattended-preflight`.
+- `subagent-tool-scope-review`: `subagent_scope.py` reads project, user and plugin agent files and MCP config files and reports what each subagent can reach (built-in tools, MCP servers, write, shell, web) with findings: `inherits-all-tools`, `lookalike-field` (`allowed-tools` and similar are ignored in agent files), `read-only-job-with-write-tools`, `bypass-mode`, `loose-mode-for-reader`, `server-wide-mcp-grant`, `inline-mcp-server`, `specifier-in-tools`, `disallowed-specifier`, fields a plugin agent ignores and malformed front matter, with a narrower `tools` line for readers. `--fail-on`; exit 0, 1, 2. 14 tests. Subcommand `subagent-scope`.
+- CI: the container job runs `subagent-scope` on a sample agent.
+
 ## [0.3.0] - 2026-10-18
 
 Every skill was checked against the current Claude Code documentation (settings reference, sandboxing, permissions, hooks, plugins reference and skills pages, read 2026-10-18). What had gone stale is fixed below, each with a test.

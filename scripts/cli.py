@@ -17,7 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 PROG = "claude-code-tooling"
 HERE = Path(__file__).resolve().parent
@@ -74,6 +74,16 @@ COMMANDS: dict[str, tuple[str, str, str]] = {
         "sandbox-config-review",
         "sandbox_review.py",
         "Review sandbox settings across scopes, show what is enforced and flag what leaves it open",
+    ),
+    "unattended-preflight": (
+        "unattended-run-preflight",
+        "unattended_preflight.py",
+        "Replay a run's tool calls against the permission rules and list what would stop an unattended run",
+    ),
+    "subagent-scope": (
+        "subagent-tool-scope-review",
+        "subagent_scope.py",
+        "Show which tools and MCP servers each subagent can reach and flag more access than its job needs",
     ),
 }
 
