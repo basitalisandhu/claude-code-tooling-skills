@@ -382,10 +382,10 @@ def glob_to_regex(pattern: str) -> re.Pattern:
 
 
 def resolve_path(raw: str, cwd: str, home: str) -> str:
-    p = raw
+    p = raw.replace("\\", "/")
     if p.startswith("~/") or p == "~":
         p = home + p[1:]
-    elif not p.startswith("/"):
+    elif not p.startswith("/") and not re.match(r"^[A-Za-z]:/", p):
         p = cwd.rstrip("/") + "/" + p
     return str(PurePosixPath(os.path.normpath(p))).replace("\\", "/")
 
