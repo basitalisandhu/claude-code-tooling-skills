@@ -2,8 +2,9 @@
 
 Every skill script lives at plugins/cc-setup-tooling/skills/<skill>/scripts/<name>.py and is a standalone program,
 not a package. Tests load one by path with load_script() and call its main(argv), capturing stdout and stderr.
-There are no fixture files on disk: each test builds its synthetic input in pytest's tmp_path with write_files(),
-using made-up names and example values only. Nothing here touches the network.
+Most tests build their synthetic input in pytest's tmp_path with write_files(), using made-up names and example
+values only; the transcript skills also read hand-written synthetic transcripts from tests/fixtures/transcripts/.
+Nothing here touches the network.
 
 Tests marked posix_only need POSIX file modes or symbolic links and are skipped on Windows; everything else runs on
 Linux, macOS and Windows.

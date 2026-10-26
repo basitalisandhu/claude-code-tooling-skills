@@ -1,6 +1,6 @@
-# Claude Code skills for keeping your Claude Code setup safe and tidy: review third-party skills, lint and evaluate your own, audit context budget, build least-privilege permissions, review the sandbox, preflight unattended runs, scope subagent tools, author hooks, find collisions and portability problems
+# Claude Code skills for keeping your Claude Code setup safe and tidy: review third-party skills, lint and evaluate your own, audit context budget, build least-privilege permissions, review the sandbox, preflight unattended runs, scope subagent tools, read session transcripts for usage, shell slips and compaction loss, author hooks, find collisions and portability problems
 
-**Eleven skills, each with an offline, standard-library Python script and tests: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, sandbox-config-review, unattended-run-preflight, subagent-tool-scope-review, hook-author, skill-collision-check and skill-portability-check.**
+**Fourteen skills, each with an offline, standard-library Python script and tests: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, sandbox-config-review, unattended-run-preflight, subagent-tool-scope-review, session-usage-ledger, shell-slip-audit, compaction-loss-check, hook-author, skill-collision-check and skill-portability-check.**
 
 claude-code-tooling-skills is a Claude Code plugin for the upkeep of Claude Code itself. A setup grows by accretion: skills and plugins installed from other people's repositories, descriptions written once and never measured, memory files and MCP servers that fill the context before the first word, permission rules added one "always allow" at a time, a sandbox whose settings are spread over four scopes, hooks copied from examples, two skills with the same name, a script that works on one laptop only. Each skill here turns one of those into a check with a script that reads local files, applies stated rules, and reports what it found with the file and line, leaving the decision to you.
 
@@ -41,7 +41,7 @@ Questions, bugs and ideas: open an issue on this repository. Security reports: s
 3. **Without Claude Code**: run the scripts from a clone (`python3 scripts/cli.py <subcommand>`), build the Python package with `pip install .` (it installs the `claude-code-tooling` command; it is not on PyPI), or use the container image `ghcr.io/basitalisandhu/claude-code-tooling-skills`, which `publish-github-packages.yml` builds for linux/amd64 and linux/arm64 when a version tag is pushed, signed with cosign (keyless), with a build provenance attestation and an SPDX SBOM on the GitHub Release:
 
    ```bash
-   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.4.0 portability /work/skills
+   docker run --rm -v "$PWD:/work:ro" ghcr.io/basitalisandhu/claude-code-tooling-skills:0.5.0 portability /work/skills
    ```
 
 After a copy install, each SKILL.md says where its script is relative to the skill folder.
@@ -59,6 +59,9 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 | `sandbox-review` | `sandbox_review.py` (sandbox-config-review) |
 | `unattended-preflight` | `unattended_preflight.py` (unattended-run-preflight) |
 | `subagent-scope` | `subagent_scope.py` (subagent-tool-scope-review) |
+| `usage-ledger` | `usage_ledger.py` (session-usage-ledger) |
+| `shell-slips` | `shell_slips.py` (shell-slip-audit) |
+| `compaction-check` | `compaction_check.py` (compaction-loss-check) |
 
 ## When to use this
 
@@ -70,6 +73,9 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 - You turned on the sandbox and want to know what it actually enforces, or cloned a repository whose `.claude/settings.json` has a `sandbox` block. `sandbox-config-review`
 - A scheduled task, routine, CI job or `claude -p` run stalls on a permission prompt, or you are about to move a prompt into one. `unattended-run-preflight`
 - You are adding an MCP server or installing a plugin with agents, and want to know which subagents get its tools. `subagent-tool-scope-review`
+- A usage limit fills faster than the work you did, or cache writes look like 5 minutes when you expected 1 hour. `session-usage-ledger`
+- Bash commands keep failing under zsh, or half-work on Windows, without anyone noticing. `shell-slip-audit`
+- A long session stopped following a rule you gave earlier, or came back from an idle compaction without its context. `compaction-loss-check`
 - A team rule ("never read .env", "summarise before stopping") should run every time, not depend on memory. `hook-author`
 - The wrong skill ran, or a new plugin arrived with a skill name you already use. `skill-collision-check`
 - A skill works on your Mac and fails for a colleague on Windows or in Linux CI. `skill-portability-check`
@@ -86,6 +92,9 @@ After a copy install, each SKILL.md says where its script is relative to the ski
 | `sandbox-config-review` | "is my sandbox actually locked down?" | `sandbox_review.py` | none |
 | `unattended-run-preflight` | "why does my scheduled task stall on permission prompts?" | `unattended_preflight.py` | none |
 | `subagent-tool-scope-review` | "which of my subagents can use the GitHub MCP tools?" | `subagent_scope.py` | none |
+| `session-usage-ledger` | "why did my usage jump this week?" | `usage_ledger.py` | none |
+| `shell-slip-audit` | "why do my Bash commands keep failing under zsh?" | `shell_slips.py` | none |
+| `compaction-loss-check` | "what did compaction forget?" | `compaction_check.py` | none |
 | `hook-author` | "add a hook that blocks this command" | `hook_scaffold.py` | cc-hooks |
 | `skill-collision-check` | "why did the wrong skill run?" | `skill_collisions.py` | none |
 | `skill-portability-check` | "will this skill work on Windows?" | `portability_check.py` | none |
@@ -235,6 +244,117 @@ python3 scripts/cli.py subagent-scope --project demo-agents
 
 The exit code is 1. Pass `--mcp .mcp.json` to see the server names an inheriting agent reaches.
 
+### session-usage-ledger
+
+| | |
+|---|---|
+| Reads | Claude Code session transcripts (`~/.claude/projects/**/*.jsonl`, subagent transcripts included) |
+| Does | merges the assistant lines of one API response by message id and request id, then adds up input, output, cache read and 5-minute and 1-hour cache write tokens per day, session, model and project; compares two periods by calls, context per call, cache-hit ratio, 5-minute share of writes and first-call size |
+| Produces | the ledger tables, "What moved" between the periods, and findings: `cache-ttl-5m` (with `--expect-ttl 1h`), `low-cache-hit`, `first-call-overhead`, `period-jump`; prices only from a `--rates` file you give |
+
+Sample run on the synthetic fixture in this repository (four sessions over two weeks, one with a subagent):
+
+```bash
+python3 scripts/cli.py usage-ledger tests/fixtures/transcripts/usage --compare-weeks --expect-ttl 1h
+```
+
+```text
+- API calls: 14 in 4 session(s); subagent calls 2 (4.9% of tokens)
+- Input (uncached) 41, output 6,590, cache read 159,000, cache write 354,800 (5m 287,800, 1h 67,000, unsplit 0)
+- Cache-hit ratio 30.9%; 5-minute share of split writes 81.1%
+- First call per session: median 41,506 tokens, largest 53,004
+
+What moved
+----------
+
+- Tokens per day changed +120%; calls per day changed +33% and tokens per call +65%, so about 36% of the change is the number of calls and 64% the size of each call.
+- Cache-hit ratio fell from 58.1% to 18.6%.
+- 5-minute cache writes went from 0.0% to 100.0% of split writes: 1-hour writes turned into 5-minute writes, which expire sooner and are written again.
+- Median first-call size changed +72% (30,504 to 52,505 tokens).
+
+Findings
+--------
+
+- cache-ttl-5m: 81.1% of split cache writes used the 5-minute lifetime while 1 hour was expected (threshold 50.0%). Days affected: 2026-10-13, 2026-10-15.
+- low-cache-hit: cache-hit ratio 30.9% is below 80.0%. Days below: 4 of 4.
+- period-jump: tokens per day rose +120% from the baseline (threshold +50%). See 'What moved'.
+```
+
+The exit code is 1. Plan quotas and weekly percentages are not in the transcript, so the ledger shows what the API responses reported, never what a meter counted.
+
+### shell-slip-audit
+
+| | |
+|---|---|
+| Reads | Claude Code session transcripts: every Bash and PowerShell call and its result |
+| Does | classifies failures that come from the shell: zsh `no matches found` on a flag value or a path glob, `=` word expansion, bad pattern, parse error, bad substitution, bash-only builtins, glob qualifiers, a heredoc or `&&` sent to PowerShell, a Windows command near the 8,186-character limit, a sandbox that cannot start the shell; marks a slip silent when the result was not flagged as an error |
+| Produces | slips per 1,000 shell calls, the silent share and the repeat rate, a table per pattern and per session with an example and a fix, and `--emit-rule` for a CLAUDE.md block |
+
+Sample run on the synthetic fixture (a zsh session and a Windows session):
+
+```bash
+python3 scripts/cli.py shell-slips tests/fixtures/transcripts/shell
+```
+
+```text
+- Shell calls: 14 (Bash 12, PowerShell 2) in 2 session(s)
+- Slips: 9 call(s), 642.9 per 1,000 shell calls
+- Silent (result not marked as an error): 3 (33%)
+- Repeat rate (same pattern again in the same session): 11%
+- Interrupted or timed out: 1
+
+Patterns
+--------
+
+Pattern                    Kind  Calls  Per 1,000  Silent  Repeats
+-------------------------  ----  -----  ---------  ------  -------
+glob-in-flag-value         slip  2      142.9      2       1
+bad-substitution           slip  1      71.4       0       0
+bash-only-builtin          slip  1      71.4       0       0
+bash-syntax-in-powershell  slip  1      71.4       0       0
+equals-expansion           slip  1      71.4       0       0
+heredoc-in-powershell      slip  1      71.4       0       0
+unmatched-glob             slip  1      71.4       0       0
+windows-command-length     slip  1      71.4       1       0
+timed-out                  stop  1      71.4       0       0
+```
+
+The exit code is 1. It sees only failures the shell reported, so the rate is a floor.
+
+### compaction-loss-check
+
+| | |
+|---|---|
+| Reads | Claude Code session transcripts: `compact_boundary` lines, the summary after each, and what came before |
+| Does | reports each compaction's trigger, tokens before and after and the time since the last user message (idle compactions), and checks the summary for the standing rules the user gave, the files edited, branches and pull requests created and open to-dos |
+| Produces | a "re-state these" list per compaction and, with `--emit-recap`, a block to paste back into the session |
+
+Sample run on the synthetic fixture (one session, an auto compaction and an idle one):
+
+```bash
+python3 scripts/cli.py compaction-check tests/fixtures/transcripts/compaction
+```
+
+```text
+- Compactions: 2 in 1 transcript(s); triggers: auto 1, idle 1
+- Idle compactions (a trigger other than auto or manual, or auto at least 30 minutes after the last user message): 1
+- Summaries not found after the boundary: 0
+- Items missing from a summary, counted per compaction: 12 (standing rules 4, edited files 4)
+
+Session 7c2e9a4b at 2026-10-22 09:06 (7c2e9a4b-3f1d-4b6c-a0e5-9d8f1b3c2a77.jsonl:12)
+------------------------------------------------------------------------------------
+
+Trigger auto, 167,000 to 9,800 tokens, 6 min after the last user message.
+Checked 7 item(s): 4 kept, 0 partly, 3 to re-state.
+
+Re-state these:
+- rule (missing): Always run npm test before you commit.
+- file (missing): /srv/demo-shop/src/checkout/total.ts
+- todo (missing): Update the order confirmation email
+```
+
+The exit code is 1. Matching is by substring and word overlap, so it misses paraphrase and can over-report; read the summary before re-stating.
+
 ### hook-author
 
 | | |
@@ -281,7 +401,8 @@ plugins/cc-setup-tooling/
                  _skillmd.py                          shared front matter reader (identical copies, checked by a test)
 scripts/cli.py                                        the claude-code-tooling dispatcher (container and package entrypoint)
 scripts/validate_plugin.py                            structure, front matter, scripts, READMEs, house style
-tests/                                                pytest suite, offline; inputs are built in each test, golden reports in tests/golden/
+tests/                                                pytest suite, offline; inputs are built in each test, golden reports in tests/golden/,
+                                                      synthetic session transcripts in tests/fixtures/transcripts/
 ```
 
 ## Development
@@ -307,7 +428,7 @@ Only for the steps that use them. Every bundled script runs on Python 3.10 with 
 No. The host reads descriptions with a language model. The script measures word and phrase overlap, which is useful for comparing two wordings against the same prompts and spotting plain misses, and it says so in its output.
 
 **Are the token numbers exact?**
-No. context-budget-audit and skill-description-linter estimate tokens as characters / 4 and say so.
+No for context-budget-audit and skill-description-linter, which estimate tokens as characters / 4 and say so. session-usage-ledger adds up the token counts the API responses reported in the transcripts; it cannot say how a plan meter weighs them.
 
 **Does sandbox-config-review prove the sandbox works?**
 No. It reads settings files and applies the merge rules on the official page; it cannot see the `--settings` flag, server-managed settings or missing dependencies. It prints curl checks for you to run as sandboxed commands in a session, which is how you confirm enforcement.

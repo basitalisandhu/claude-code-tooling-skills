@@ -69,7 +69,7 @@ jobs:
         run: |
           docker build --build-arg VERSION=ci -t claude-code-tooling-skills:ci .
           docker run --rm claude-code-tooling-skills:ci --help > help.txt && grep "^usage: claude-code-tooling <subcommand>" help.txt
-          for s in inventory desc-lint trigger-eval context-budget perm-merge hook-scaffold collisions portability sandbox-review unattended-preflight subagent-scope; do docker run --rm claude-code-tooling-skills:ci "$s" --help > /dev/null; done
+          for s in inventory desc-lint trigger-eval context-budget perm-merge hook-scaffold collisions portability sandbox-review unattended-preflight subagent-scope usage-ledger shell-slips compaction-check; do docker run --rm claude-code-tooling-skills:ci "$s" --help > /dev/null; done
           mkdir -p sample/demo/scripts && printf 'print(open("notes.txt").read())\n' > sample/demo/scripts/show.py
           set +e
           docker run --rm -v "$PWD/sample:/work:ro" claude-code-tooling-skills:ci portability /work/demo > port.md; test $? -eq 1 || exit 1
@@ -85,6 +85,14 @@ jobs:
           docker run --rm -v "$PWD/sample:/work:ro" claude-code-tooling-skills:ci subagent-scope --project /work/agents-proj > sa.md; test $? -eq 1 || exit 1
           set -e
           grep "inherits-all-tools" sa.md
+          set +e
+          docker run --rm -v "$PWD/tests/fixtures/transcripts:/work:ro" claude-code-tooling-skills:ci usage-ledger /work/usage --compare-weeks --expect-ttl 1h > ul.txt; test $? -eq 1 || exit 1
+          docker run --rm -v "$PWD/tests/fixtures/transcripts:/work:ro" claude-code-tooling-skills:ci shell-slips /work/shell > ss.txt; test $? -eq 1 || exit 1
+          docker run --rm -v "$PWD/tests/fixtures/transcripts:/work:ro" claude-code-tooling-skills:ci compaction-check /work/compaction > cc.txt; test $? -eq 1 || exit 1
+          set -e
+          grep "cache-ttl-5m" ul.txt
+          grep "glob-in-flag-value" ss.txt
+          grep "Re-state these" cc.txt
           docker run --rm claude-code-tooling-skills:ci --version
           test "$(docker run --rm --entrypoint id claude-code-tooling-skills:ci -u)" = "1000"
           test "$(docker run --rm --entrypoint pwd claude-code-tooling-skills:ci)" = "/work"

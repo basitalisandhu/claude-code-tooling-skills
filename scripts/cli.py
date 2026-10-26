@@ -17,7 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 PROG = "claude-code-tooling"
 HERE = Path(__file__).resolve().parent
@@ -84,6 +84,21 @@ COMMANDS: dict[str, tuple[str, str, str]] = {
         "subagent-tool-scope-review",
         "subagent_scope.py",
         "Show which tools and MCP servers each subagent can reach and flag more access than its job needs",
+    ),
+    "usage-ledger": (
+        "session-usage-ledger",
+        "usage_ledger.py",
+        "Add up API usage in session transcripts per day, session, model and project, and show what moved",
+    ),
+    "shell-slips": (
+        "shell-slip-audit",
+        "shell_slips.py",
+        "Count Bash calls in session transcripts that failed because of the shell, including silent ones",
+    ),
+    "compaction-check": (
+        "compaction-loss-check",
+        "compaction_check.py",
+        "Check each compaction summary for the rules, edited files and to-dos it may have dropped",
     ),
 }
 

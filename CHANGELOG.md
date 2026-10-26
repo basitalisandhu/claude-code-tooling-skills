@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows Keep
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-26
+
+Three skills that read Claude Code session transcripts (`~/.claude/projects/**/*.jsonl`, subagent transcripts included). The transcript format is not documented: each script reads it defensively, counts unreadable lines and unknown line types and reports them, and exits 2 only when nothing usable was read. They share a small reader, `_transcript.py`, as identical copies checked by a test.
+
+### Added
+
+- `session-usage-ledger`: `usage_ledger.py` merges the assistant lines of one API response by message id and request id (keeping the largest value of each usage field), then adds up calls, uncached input, output, cache read and 5-minute and 1-hour cache write tokens per UTC day, session, model and project, with the cache-hit ratio read / (read + write + uncached input), each session's first-call size and the subagent share. `--compare-weeks` or `--baseline A..B --period C..D` shows which component moved (calls, context per call, cache hits, 5-minute share of writes, first-call size). Findings: `cache-ttl-5m` (with `--expect-ttl 1h`), `low-cache-hit`, `first-call-overhead`, `period-jump`. `--rates` estimates cost from the user's own per-million rates; nothing is priced otherwise. Text, Markdown or JSON; exit 0, 1, 2. 12 tests. Subcommand `usage-ledger`.
+- `shell-slip-audit`: `shell_slips.py` pairs every Bash and PowerShell call with its result and classifies failures that come from the shell: zsh `no matches found` on a flag value or a path glob, `=` word expansion, bad pattern, parse error, bad substitution, bash-only builtins, colon modifiers, array subscripts, glob qualifiers, command not found, a heredoc or bash syntax sent to PowerShell, Bash commands on Windows near the 8,186-character limit, and a sandbox that cannot start the shell, with interrupted and timed-out calls counted as stops. It reports slips per 1,000 shell calls, the silent share (result not marked as an error), the repeat rate, a table per pattern and per session with an example and a fix, and `--emit-rule` prints a CLAUDE.md block. `--max-rate`; exit 0, 1, 2. 10 tests. Subcommand `shell-slips`.
+- `compaction-loss-check`: `compaction_check.py` reports each `compact_boundary` (trigger, tokens before and after, minutes since the last user message, idle compactions) and checks the summary that follows for the standing rules the user gave, files edited or written, branches and pull requests created, and open `TodoWrite` or task items, each kept, partly kept or missing. It prints a re-state list per compaction, and `--emit-recap` a block to paste back into the session. Exit 1 when a standing rule or an edited file is missing; 0, 2 as usual. 11 tests. Subcommand `compaction-check`.
+- Synthetic transcript fixtures in `tests/fixtures/transcripts/`, used by the tests and the README samples. 4 tests for the shared reader.
+- CI: the container job runs `usage-ledger`, `shell-slips` and `compaction-check` on the fixtures.
+
 ## [0.4.0] - 2026-10-20
 
 ### Added
