@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows Keep
 
 ## [Unreleased]
 
+### Fixed
+
+- `trigger_eval.py` printed a `BrokenPipeError` traceback when its output was piped into a reader that stops early, such as `head`. It now stops quietly and exits 141.
+
 ## [0.5.0] - 2026-10-26
 
 Three skills that read Claude Code session transcripts (`~/.claude/projects/**/*.jsonl`, subagent transcripts included). The transcript format is not documented: each script reads it defensively, counts unreadable lines and unknown line types and reports them, and exits 2 only when nothing usable was read. They share a small reader, `_transcript.py`, as identical copies checked by a test.
