@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "claude-code-tooling-skills"
-version = "0.4.0"
-description = "Claude Code skill scripts for keeping a Claude Code setup safe and tidy: an offline inventory of third-party skills and plugins, a SKILL.md front matter linter with quoting fixes, a lexical trigger evaluation of skill descriptions, a context budget audit, a permission rule merger, a hook scaffold for cc-hooks, a skill collision check, a portability check, a sandbox settings review, an unattended run permission preflight and a subagent tool scope review."
+version = "0.5.0"
+description = "Claude Code skill scripts for keeping a Claude Code setup safe and tidy: an offline inventory of third-party skills and plugins, a SKILL.md front matter linter with quoting fixes, a lexical trigger evaluation of skill descriptions, a context budget audit, a permission rule merger, a hook scaffold for cc-hooks, a skill collision check, a portability check, a sandbox settings review, an unattended run permission preflight, a subagent tool scope review, and three session transcript checks: a usage ledger, a shell slip audit and a compaction loss check."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -25,6 +25,10 @@ keywords = [
   "sandbox",
   "subagents",
   "scheduled-tasks",
+  "session-transcripts",
+  "prompt-caching",
+  "compaction",
+  "zsh",
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -70,6 +74,9 @@ bypass-selection = true
 "plugins/cc-setup-tooling/skills/sandbox-config-review/scripts" = "claude_code_tooling_skills/skills/sandbox-config-review/scripts"
 "plugins/cc-setup-tooling/skills/unattended-run-preflight/scripts" = "claude_code_tooling_skills/skills/unattended-run-preflight/scripts"
 "plugins/cc-setup-tooling/skills/subagent-tool-scope-review/scripts" = "claude_code_tooling_skills/skills/subagent-tool-scope-review/scripts"
+"plugins/cc-setup-tooling/skills/session-usage-ledger/scripts" = "claude_code_tooling_skills/skills/session-usage-ledger/scripts"
+"plugins/cc-setup-tooling/skills/shell-slip-audit/scripts" = "claude_code_tooling_skills/skills/shell-slip-audit/scripts"
+"plugins/cc-setup-tooling/skills/compaction-loss-check/scripts" = "claude_code_tooling_skills/skills/compaction-loss-check/scripts"
 
 [tool.hatch.build.targets.sdist]
 include = [

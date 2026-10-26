@@ -1,20 +1,20 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "claude-code-tooling-skills",
-  "description": "Eleven Claude Code skills for keeping a Claude Code setup safe and tidy: review third-party skills before install, lint and evaluate your own skill descriptions, audit the context budget, build least-privilege permissions, review the sandbox settings, preflight unattended runs for permission prompts, review subagent tool scope, author and test hooks, and find skill collisions and portability problems.",
+  "description": "Fourteen Claude Code skills for keeping a Claude Code setup safe and tidy: review third-party skills before install, lint and evaluate your own skill descriptions, audit the context budget, build least-privilege permissions, review the sandbox settings, preflight unattended runs for permission prompts, review subagent tool scope, author and test hooks, find skill collisions and portability problems, and read session transcripts for usage, shell slips and what compaction dropped.",
   "owner": {
     "name": "Muhammad Basit Ali",
     "url": "https://github.com/basitalisandhu"
   },
   "metadata": {
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "plugins": [
     {
       "name": "cc-setup-tooling",
       "source": "./plugins/cc-setup-tooling",
-      "description": "Eleven skills, each with a tested standard-library script over local files: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, sandbox-config-review, unattended-run-preflight, subagent-tool-scope-review, hook-author, skill-collision-check and skill-portability-check. They drive skill-scan-gate, cc-plugin-lock, claude-perm-sim, claude-mcp-allow and cc-hooks where those are installed. No network.",
-      "version": "0.4.0",
+      "description": "Fourteen skills, each with a tested standard-library script over local files: skill-supply-chain-review, skill-description-linter, skill-trigger-eval, context-budget-audit, permissions-builder, sandbox-config-review, unattended-run-preflight, subagent-tool-scope-review, session-usage-ledger, shell-slip-audit, compaction-loss-check, hook-author, skill-collision-check and skill-portability-check. They drive skill-scan-gate, cc-plugin-lock, claude-perm-sim, claude-mcp-allow and cc-hooks where those are installed. No network.",
+      "version": "0.5.0",
       "author": {
         "name": "Muhammad Basit Ali",
         "url": "https://github.com/basitalisandhu"
@@ -35,7 +35,9 @@
         "skill-collisions",
         "portability",
         "subagents",
-        "unattended"
+        "unattended",
+        "session-transcripts",
+        "compaction"
       ],
       "category": "development",
       "tags": [
