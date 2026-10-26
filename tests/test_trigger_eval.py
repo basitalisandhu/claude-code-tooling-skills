@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
+from pathlib import Path
 
 from conftest import load_script, run_json, run_main, skill_md, write_files
 
@@ -133,3 +136,22 @@ def test_golden_markdown(tmp_path):
     assert out.startswith("# Skill trigger evaluation (lexical proxy)\n\nThreshold 0.35; score = 0.5 coverage")
     assert "| decision-log | 1.00 | 1.00 | 2 | 0 | 0 | 2 | ok |\n" in out
     assert out.endswith("## Misjudged prompts\n\nNone.\n")
+
+
+def test_closed_pipe_exits_quietly(tmp_path):
+    # Enough output to overflow the pipe buffer, read by a process that exits after one byte.
+    many = "decision-log:\n  should_trigger:\n" + "".join(
+        f'    - "record decision {i} about the logs"\n' for i in range(3000)
+    )
+    prompts, skills = setup(tmp_path, prompts=many)
+    script = Path(mod.__file__)
+    writer = subprocess.Popen(
+        [sys.executable, str(script), prompts, "--skill", skills, "--json"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    assert writer.stdout.read(1)
+    writer.stdout.close()
+    _, err = writer.communicate(timeout=60)
+    assert b"Traceback" not in err and b"BrokenPipe" not in err
+    assert writer.returncode == 141
